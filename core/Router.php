@@ -43,13 +43,29 @@ class Router
     public function dispatch()
     {
         $requestMethod = $_SERVER['REQUEST_METHOD'];
+        
+        // Extract the path from REQUEST_URI
         $requestPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-        $requestPath = str_replace(substr($_SERVER['SCRIPT_NAME'], 0, strrpos($_SERVER['SCRIPT_NAME'], '/')), '', $requestPath);
+        
+        // Remove script directory from the path
+        // Better handling for different server configurations
+        $scriptDir = dirname($_SERVER['SCRIPT_NAME']);
+        if ($scriptDir !== '/' && strpos($requestPath, $scriptDir) === 0) {
+            $requestPath = substr($requestPath, strlen($scriptDir));
+        }
+        
         $requestPath = trim($requestPath, '/');
-
+        
         // Handle empty path
         if (empty($requestPath)) {
             $requestPath = '';
+        }
+        
+        // Debug logging for shared hosting issues
+        if ($_ENV['APP_DEBUG'] === 'true') {
+            error_log("Router DEBUG: REQUEST_URI=" . $_SERVER['REQUEST_URI'] . 
+                      ", SCRIPT_NAME=" . $_SERVER['SCRIPT_NAME'] . 
+                      ", Extracted path=" . $requestPath);
         }
 
         // Check exact route match
