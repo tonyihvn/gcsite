@@ -28,20 +28,51 @@ class Mailer
     }
 
     /**
-     * Send email using PHP's mail() function with SMTP headers
+     * Send email using PHP's mail() function
+     * Includes error logging for debugging
      */
     public function send($to, $subject, $body, $isHtml = true)
     {
-        // For development, use PHP mail() with proper headers
-        // In production, consider using PHPMailer or SwiftMailer
+        // Validate email
+        if (!filter_var($to, FILTER_VALIDATE_EMAIL)) {
+            error_log("Mailer: Invalid email address: $to");
+            return false;
+        }
+
+        // Sanitize subject and to
+        $to = filter_var($to, FILTER_SANITIZE_EMAIL);
+        $subject = str_replace(array("\r", "\n"), '', $subject);
         
+        // Build headers
         $headers = "MIME-Version: 1.0\r\n";
         $headers .= "Content-type: " . ($isHtml ? "text/html; charset=UTF-8" : "text/plain; charset=UTF-8") . "\r\n";
         $headers .= "From: {$this->fromName} <{$this->fromEmail}>\r\n";
         $headers .= "Reply-To: {$this->fromEmail}\r\n";
+        $headers .= "Return-Path: {$this->fromEmail}\r\n";
         $headers .= "X-Mailer: PHP/" . phpversion() . "\r\n";
-
-        return mail($to, $subject, $body, $headers);
+        $headers .= "X-Priority: 3\r\n";
+        
+        // Additional parameters for mail function
+        $additional_params = "-f{$this->fromEmail}";
+        
+        // Log email details for debugging
+        error_log("Mailer: Attempting to send email to: $to, Subject: $subject");
+        
+        try {
+            // Send email
+            $result = @mail($to, $subject, $body, $headers, $additional_params);
+            
+            if ($result) {
+                error_log("Mailer: Email sent successfully to: $to");
+            } else {
+                error_log("Mailer: Failed to send email to: $to (mail() returned false)");
+            }
+            
+            return $result;
+        } catch (\Exception $e) {
+            error_log("Mailer Exception: " . $e->getMessage());
+            return false;
+        }
     }
 
     /**

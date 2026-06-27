@@ -629,51 +629,77 @@ class AdminController extends Controller
         if (!empty($feedback['email']) && !empty($adminNotes)) {
             try {
                 $mailer = new \Core\Mailer();
-                $subject = 'Re: Your Feedback - ' . config('app.name');
+                // Use the original feedback title/subject for the reply
+                $subject = 'Re: ' . ($feedback['title'] ?? $feedback['subject'] ?? 'Your Feedback') . ' - ' . config('company.name');
                 
                 $emailBody = "
                 <html>
                 <head>
                     <style>
-                        body { font-family: Arial, sans-serif; color: #333; }
-                        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                        .header { background: #667eea; color: white; padding: 20px; border-radius: 5px; margin-bottom: 20px; }
-                        .content { background: #f9f9f9; padding: 20px; border-left: 4px solid #667eea; }
-                        .footer { margin-top: 20px; font-size: 0.9em; color: #999; }
+                        body { font-family: Arial, sans-serif; color: #333; background-color: #f9f9f9; }
+                        .container { max-width: 600px; margin: 0 auto; padding: 20px; background-color: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+                        .header { background: linear-gradient(135deg, #0369a1 0%, #0c4a6e 100%); color: white; padding: 20px; border-radius: 8px 8px 0 0; margin: -20px -20px 20px -20px; }
+                        .header h2 { margin: 0; font-size: 20px; }
+                        .section { margin: 20px 0; }
+                        .section h3 { color: #0369a1; border-bottom: 2px solid #0369a1; padding-bottom: 10px; }
+                        .message-box { background: #f5f5f5; padding: 15px; border-left: 4px solid #0369a1; border-radius: 4px; }
+                        .response-box { background: #f0f7ff; padding: 15px; border-left: 4px solid #10b981; border-radius: 4px; }
+                        .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; color: #999; font-size: 12px; }
                     </style>
                 </head>
                 <body>
                     <div class='container'>
                         <div class='header'>
-                            <h2>Thank You for Your Feedback</h2>
+                            <h2>📧 Response to Your Feedback</h2>
                         </div>
-                        <p>Dear " . htmlspecialchars($feedback['name']) . ",</p>
-                        <p>Thank you for submitting your feedback. We appreciate your input.</p>
                         
-                        <div class='content'>
-                            <h3>Your Original Message:</h3>
-                            <p>" . nl2br(htmlspecialchars($feedback['message'])) . "</p>
-                            
-                            <h3>Our Response:</h3>
-                            <p>" . nl2br(htmlspecialchars($adminNotes)) . "</p>
+                        <p>Dear <strong>" . htmlspecialchars($feedback['name']) . "</strong>,</p>
+                        
+                        <p>Thank you for submitting your feedback to " . config('company.name') . ". We appreciate your input and have reviewed your message carefully.</p>
+                        
+                        <div class='section'>
+                            <h3>Your Feedback</h3>
+                            <div class='message-box'>
+                                <p><strong>Subject:</strong> " . htmlspecialchars($feedback['title'] ?? 'No Subject') . "</p>
+                                <p>" . nl2br(htmlspecialchars($feedback['message'])) . "</p>
+                            </div>
+                        </div>
+                        
+                        <div class='section'>
+                            <h3>Our Response</h3>
+                            <div class='response-box'>
+                                <p>" . nl2br(htmlspecialchars($adminNotes)) . "</p>
+                            </div>
+                        </div>
+                        
+                        <div class='section'>
+                            <p>If you have any further questions or concerns, please don't hesitate to contact us.</p>
                         </div>
                         
                         <div class='footer'>
-                            <p>Best regards,<br>" . config('company.name') . "</p>
+                            <p>Best regards,<br><strong>" . config('company.name') . "</strong><br>" . config('company.address') . "<br>" . config('company.phone') . "</p>
+                            <p style='margin-top: 15px; color: #ccc;'>This is an automated response. Please do not reply to this email.</p>
                         </div>
                     </div>
                 </body>
                 </html>
                 ";
                 
-                $mailer->send(
+                // Send the email
+                $sent = $mailer->send(
                     $feedback['email'],
                     $subject,
                     $emailBody,
-                    config('mail.from')
+                    true // $isHtml = true
                 );
+                
+                if ($sent) {
+                    error_log('Feedback response email sent successfully to: ' . $feedback['email']);
+                } else {
+                    error_log('Failed to send feedback response email to: ' . $feedback['email']);
+                }
             } catch (\Exception $e) {
-                error_log('Failed to send feedback response email: ' . $e->getMessage());
+                error_log('Exception while sending feedback response email: ' . $e->getMessage());
             }
         }
 
@@ -1123,6 +1149,51 @@ class AdminController extends Controller
             'page_title' => 'User: ' . $user['email'],
         ];
         $this->view('admin.user-detail', $data);
+    }
+
+    public function changeUserPassword($id)
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('admin/users');
+        }
+
+        // Validate CSRF
+        if (!isset($_POST['csrf_token']) || !\Core\Security::verifyCsrfToken($_POST['csrf_token'])) {
+            set_flash('error', 'Invalid security token');
+            $this->redirect('admin/users/' . $id);
+        }
+
+        $user = (new User())->find($id);
+        if (!$user) {
+            set_flash('error', 'User not found');
+            $this->redirect('admin/users');
+        }
+
+        $rules = [
+            'new_password' => 'required|min:8',
+            'confirm_password' => 'required',
+        ];
+
+        $errors = $this->validate($_POST, $rules);
+
+        if (!empty($errors)) {
+            set_flash('errors', $errors);
+            $this->redirect('admin/users/' . $id);
+        }
+
+        // Verify new passwords match
+        if ($_POST['new_password'] !== $_POST['confirm_password']) {
+            set_flash('error', 'Passwords do not match');
+            $this->redirect('admin/users/' . $id);
+        }
+
+        // Update password
+        (new User())->update($id, [
+            'password' => \Core\Security::hashPassword($_POST['new_password']),
+        ]);
+
+        set_flash('success', 'User password changed successfully');
+        $this->redirect('admin/users/' . $id);
     }
 
     // ===== MEDIA MANAGEMENT =====

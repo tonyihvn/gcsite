@@ -62,6 +62,41 @@
                     </form>
                 </div>
             </div>
+
+            <!-- Change Password Section -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Change Password</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="<?= route('dashboard/change-password') ?>">
+                        <?= csrf_field() ?>
+
+                        <div class="mb-3">
+                            <label for="current_password" class="form-label">Current Password</label>
+                            <input type="password" class="form-control" id="current_password" name="current_password" required>
+                            <small class="text-muted">Enter your current password to verify</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="new_password" class="form-label">New Password</label>
+                            <input type="password" class="form-control" id="new_password" name="new_password" required minlength="8">
+                            <small class="text-muted">Minimum 8 characters</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="confirm_password" class="form-label">Confirm Password</label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required minlength="8">
+                            <small class="text-muted">Must match new password</small>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-warning">Change Password</button>
+                            <button type="reset" class="btn btn-outline-secondary">Clear</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>

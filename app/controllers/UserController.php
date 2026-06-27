@@ -99,6 +99,60 @@ class UserController extends Controller
         $this->redirect('dashboard/profile');
     }
 
+    public function changePassword()
+    {
+        $user = auth();
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect('dashboard/profile');
+        }
+
+        // Validate CSRF
+        if (!isset($_POST['csrf_token']) || !\Core\Security::verifyCsrfToken($_POST['csrf_token'])) {
+            set_flash('error', 'Invalid security token');
+            $this->redirect('dashboard/profile');
+        }
+
+        $rules = [
+            'current_password' => 'required',
+            'new_password' => 'required|min:8',
+            'confirm_password' => 'required',
+        ];
+
+        $errors = $this->validate($_POST, $rules);
+
+        if (!empty($errors)) {
+            set_flash('errors', $errors);
+            $this->redirect('dashboard/profile');
+        }
+
+        // Verify current password
+        if (!\Core\Security::verifyPassword($_POST['current_password'], $user['password'])) {
+            set_flash('error', 'Current password is incorrect');
+            $this->redirect('dashboard/profile');
+        }
+
+        // Verify new passwords match
+        if ($_POST['new_password'] !== $_POST['confirm_password']) {
+            set_flash('error', 'New passwords do not match');
+            $this->redirect('dashboard/profile');
+        }
+
+        // Prevent same password
+        if ($_POST['current_password'] === $_POST['new_password']) {
+            set_flash('error', 'New password must be different from current password');
+            $this->redirect('dashboard/profile');
+        }
+
+        // Update password
+        (new User())->update($user['id'], [
+            'password' => \Core\Security::hashPassword($_POST['new_password']),
+        ]);
+
+        set_flash('success', 'Password changed successfully');
+        $this->redirect('dashboard/profile');
+    }
+
     public function subscriptions()
     {
         $user = auth();
