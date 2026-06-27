@@ -18,7 +18,14 @@ $parentDir = dirname($currentDir);
 // Check if we're in shared hosting environment
 // On shared hosting: public_html (renamed from public) is at /home/username/public_html
 // and gcsite is at /home/username/gcsite (sibling directory)
-$siteFolderPath = dirname($parentDir) . '/gcsite';
+
+// First check: Look for gcsite as a sibling to public_html (correct for shared hosting)
+$siteFolderPath = $parentDir . '/gcsite';
+
+// Second check: Look in parent's parent for backwards compatibility
+if (!is_dir($siteFolderPath) || !file_exists($siteFolderPath . '/app')) {
+    $siteFolderPath = dirname($parentDir) . '/gcsite';
+}
 
 if (is_dir($siteFolderPath) && file_exists($siteFolderPath . '/app')) {
     // Shared hosting environment
@@ -36,6 +43,13 @@ define('PUBLIC_PATH', $currentDir);
 ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 error_reporting(E_ALL);
+
+// Verify APP_ROOT contains required files
+if (!file_exists(APP_ROOT . '/core/DotEnv.php')) {
+    die('GINTEC Setup Error: core/DotEnv.php not found at ' . APP_ROOT . '/core/DotEnv.php. ' .
+        'Ensure all project files are uploaded to the correct location. ' .
+        '(Current detection: ' . (IS_SHARED_HOSTING ? 'SHARED HOSTING' : 'LOCAL DEV') . ')');
+}
 
 // Load environment variables
 require_once APP_ROOT . '/core/DotEnv.php';
