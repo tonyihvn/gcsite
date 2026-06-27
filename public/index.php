@@ -2,14 +2,35 @@
 /**
  * Application Bootstrap and Entry Point
  * GINTEC Solutions
+ * 
+ * Supports both local development and shared hosting environments:
+ * - Local: public/ folder is inside the project root
+ * - Shared Hosting: public_html/ and gcsite/ are siblings in home directory
  */
 
 // Start session
 session_start();
 
-// Define application root
-define('APP_ROOT', dirname(__DIR__));
-define('PUBLIC_PATH', __DIR__);
+// Detect environment and set application root
+$currentDir = __DIR__;
+$parentDir = dirname($currentDir);
+
+// Check if we're in shared hosting environment
+// On shared hosting: public_html (renamed from public) is at /home/username/public_html
+// and gcsite is at /home/username/gcsite (sibling directory)
+$siteFolderPath = dirname($parentDir) . '/gcsite';
+
+if (is_dir($siteFolderPath) && file_exists($siteFolderPath . '/app')) {
+    // Shared hosting environment
+    define('APP_ROOT', $siteFolderPath);
+    define('IS_SHARED_HOSTING', true);
+} else {
+    // Local development environment
+    define('APP_ROOT', $parentDir);
+    define('IS_SHARED_HOSTING', false);
+}
+
+define('PUBLIC_PATH', $currentDir);
 
 // Error reporting
 ini_set('display_errors', 0);
