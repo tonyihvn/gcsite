@@ -1,11 +1,29 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
+    
+    # Determine RewriteBase dynamically
+    # For local: http://localhost:8001
+    # For shared hosting: https://gintec.com.ng or https://gintec.com.ng/gcsite/public
+    # The RewriteBase should be the relative path to public folder
+    
+    # If this is in a subdirectory, set RewriteBase accordingly
+    # Otherwise default to /
     RewriteBase /
     
-    # Don't rewrite existing files or directories
+    # Don't rewrite existing files
     RewriteCond %{REQUEST_FILENAME} !-f
+    # Don't rewrite existing directories  
     RewriteCond %{REQUEST_FILENAME} !-d
     
-    # Rewrite all requests to index.php
+    # Special handling for common static files
+    RewriteCond %{REQUEST_FILENAME} !(\.css|\.js|\.jpg|\.jpeg|\.png|\.gif|\.svg|\.webp|\.ico|\.woff|\.woff2|\.ttf|\.eot)$ [NC]
+    
+    # Rewrite all other requests to index.php
     RewriteRule ^(.*)$ index.php [QSA,L]
 </IfModule>
+
+# Additional security
+<FilesMatch "\.php$">
+    Order Allow,Deny
+    Allow from all
+</FilesMatch>

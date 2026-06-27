@@ -44,34 +44,55 @@ class Router
     {
         $requestMethod = $_SERVER['REQUEST_METHOD'];
         
-        // Extract the path from REQUEST_URI
-        $requestPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+        // Extract the path from REQUEST_URI - this is the raw request
+        $requestUri = $_SERVER['REQUEST_URI'];
+        $requestPath = parse_url($requestUri, PHP_URL_PATH);
         
-        // Remove script directory from the path
-        // Better handling for different server configurations
-        $scriptDir = dirname($_SERVER['SCRIPT_NAME']);
-        if ($scriptDir !== '/' && strpos($requestPath, $scriptDir) === 0) {
-            $requestPath = substr($requestPath, strlen($scriptDir));
+        // Get the script name (typically /index.php or empty)
+        $scriptName = $_SERVER['SCRIPT_NAME'];
+        $scriptDir = dirname($scriptName);
+        
+        // DEBUG logging - helps diagnose routing issues
+        $debug = ($_ENV['APP_DEBUG'] === 'true');
+        if ($debug) {
+            error_log("=== ROUTER DEBUG START ===");
+            error_log("REQUEST_URI: " . $requestUri);
+            error_log("REQUEST_PATH: " . $requestPath);
+            error_log("SCRIPT_NAME: " . $scriptName);
+            error_log("SCRIPT_DIR: " . $scriptDir);
+            error_log("REQUEST_METHOD: " . $requestMethod);
         }
         
+        // Remove script directory from path if present
+        if ($scriptDir !== '/' && !empty($scriptDir)) {
+            if (strpos($requestPath, $scriptDir) === 0) {
+                $requestPath = substr($requestPath, strlen($scriptDir));
+                if ($debug) error_log("After removing scriptDir: " . $requestPath);
+            }
+        }
+        
+        // Remove index.php from path if present (shouldn't be, but just in case)
+        $requestPath = str_replace('/index.php', '', $requestPath);
+        
+        // Trim slashes
         $requestPath = trim($requestPath, '/');
         
-        // Handle empty path
+        // Handle empty path - front page
         if (empty($requestPath)) {
             $requestPath = '';
         }
         
-        // Debug logging for shared hosting issues
-        if ($_ENV['APP_DEBUG'] === 'true') {
-            error_log("Router DEBUG: REQUEST_URI=" . $_SERVER['REQUEST_URI'] . 
-                      ", SCRIPT_NAME=" . $_SERVER['SCRIPT_NAME'] . 
-                      ", Extracted path=" . $requestPath);
+        if ($debug) {
+            error_log("Final extracted path: '" . $requestPath . "'");
+            error_log("Looking for route: [$requestMethod] '$requestPath'");
         }
 
         // Check exact route match
         if (isset($this->routes[$requestMethod][$requestPath])) {
             $route = $this->routes[$requestMethod][$requestPath];
             $this->currentRoute = $route;
+            if ($debug) error_log("FOUND exact match: " . $route['controller'] . "@" . $route['method']);
+            if ($debug) error_log("=== ROUTER DEBUG END ===");
             return $this->call($route['controller'], $route['method']);
         }
 
@@ -81,12 +102,28 @@ class Router
                 if ($this->matchRoute($path, $requestPath, $matches)) {
                     $route['params'] = $matches;
                     $this->currentRoute = $route;
+                    if ($debug) error_log("FOUND dynamic match: " . $path . " => " . $route['controller'] . "@" . $route['method']);
+                    if ($debug) error_log("Params: " . json_encode($matches));
+                    if ($debug) error_log("=== ROUTER DEBUG END ===");
                     return $this->call($route['controller'], $route['method'], $matches);
                 }
             }
         }
 
-        // 404 Not Found
+        // No route found - 404
+        if ($debug) {
+            error_log("NO ROUTE FOUND!");
+            error_log("Available routes for $requestMethod:");
+            if (isset($this->routes[$requestMethod])) {
+                foreach (array_keys($this->routes[$requestMethod]) as $route) {
+                    error_log("  - $route");
+                }
+            } else {
+                error_log("  - (no routes registered for this method)");
+            }
+            error_log("=== ROUTER DEBUG END ===");
+        }
+        
         http_response_code(404);
         $errorFile = __DIR__ . '/../app/views/errors/404.php';
         if (file_exists($errorFile)) {
