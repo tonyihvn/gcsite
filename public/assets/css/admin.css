@@ -1,0 +1,204 @@
+/* Admin Panel Specific Styles */
+
+.sidebar {
+    background-color: #2c3e50;
+    min-height: 100vh;
+}
+
+.sidebar .navbar-brand {
+    color: white;
+    padding: 15px;
+    border-bottom: 2px solid #34495e;
+}
+
+.sidebar .nav {
+    padding-left: 0;
+}
+
+.sidebar .nav-link {
+    color: #bdc3c7;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+}
+
+.sidebar .nav-link:hover {
+    background-color: #34495e;
+    color: white;
+    border-left-color: #3498db;
+}
+
+.sidebar .nav-link.active {
+    background-color: #3498db;
+    color: white;
+    border-left-color: #2980b9;
+}
+
+.sidebar .nav-link i {
+    margin-right: 12px;
+    width: 20px;
+    text-align: center;
+}
+
+/* Admin Dashboard */
+.admin-card {
+    border: none;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.admin-card:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    transform: translateY(-4px);
+}
+
+.admin-card.stat-card {
+    border-left: 4px solid #3498db;
+}
+
+.admin-card.stat-card h3 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0;
+}
+
+.admin-card.stat-card p {
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Admin Tables */
+.table-admin {
+    margin-bottom: 0;
+}
+
+.table-admin thead th {
+    background-color: #2c3e50;
+    color: white;
+    font-weight: 600;
+    border: none;
+    padding: 15px;
+}
+
+.table-admin tbody td {
+    vertical-align: middle;
+    padding: 15px;
+    border-color: #ecf0f1;
+}
+
+.table-admin tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* Admin Forms */
+.form-admin {
+    padding: 25px;
+}
+
+.form-admin .form-group {
+    margin-bottom: 20px;
+}
+
+.form-admin .form-label {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 8px;
+}
+
+.form-admin .form-control,
+.form-admin .form-select {
+    border: 1px solid #bdc3c7;
+    border-radius: 4px;
+    padding: 10px 15px;
+    font-size: 0.95rem;
+}
+
+.form-admin .form-control:focus,
+.form-admin .form-select:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+}
+
+/* Admin Buttons */
+.btn-admin-primary {
+    background-color: #3498db;
+    border-color: #3498db;
+    color: white;
+}
+
+.btn-admin-primary:hover {
+    background-color: #2980b9;
+    border-color: #2980b9;
+}
+
+.btn-admin-secondary {
+    background-color: #95a5a6;
+    border-color: #95a5a6;
+    color: white;
+}
+
+.btn-admin-secondary:hover {
+    background-color: #7f8c8d;
+    border-color: #7f8c8d;
+}
+
+/* Admin Menu */
+.admin-menu-item {
+    padding: 10px 15px;
+    border-left: 4px solid transparent;
+    transition: all 0.3s ease;
+    color: #34495e;
+    text-decoration: none;
+    display: block;
+}
+
+.admin-menu-item:hover,
+.admin-menu-item.active {
+    background-color: #ecf0f1;
+    border-left-color: #3498db;
+    color: #2c3e50;
+}
+
+/* Quick Stats */
+.quick-stat {
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    background: white;
+}
+
+.quick-stat .stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 10px 0;
+}
+
+.quick-stat .stat-label {
+    font-size: 0.9rem;
+    color: #7f8c8d;
+    text-transform: uppercase;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        left: -250px;
+        width: 250px;
+        top: 0;
+        z-index: 900;
+        transition: left 0.3s ease;
+    }
+
+    .sidebar.open {
+        left: 0;
+    }
+
+    main {
+        margin-left: 0;
+    }
+}
