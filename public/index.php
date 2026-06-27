@@ -85,7 +85,7 @@ require_once APP_ROOT . '/core/FileUploader.php';
 // Load helpers
 require_once APP_ROOT . '/app/helpers/functions.php';
 
-// Autoloader for Core namespace
+// Robust PSR-4 autoloader for Core namespace with case-insensitive directory handling
 spl_autoload_register(function ($class) {
     $prefix = 'Core\\';
     $base_dir = APP_ROOT . '/core/';
@@ -96,7 +96,22 @@ spl_autoload_register(function ($class) {
     }
 
     $relative_class = substr($class, $len);
+    
+    // Convert namespace to file path
     $file = $base_dir . str_replace('\\', '/', $relative_class) . '.php';
+    
+    // If file doesn't exist, try with lowercase directory names for subdirectories
+    if (!file_exists($file)) {
+        // Split the path into parts and lowercase directory names
+        $pathParts = explode('/', str_replace('\\', '/', $relative_class));
+        $lastPart = array_pop($pathParts); // Keep the class name as-is
+        
+        // Lowercase all directory parts
+        $pathParts = array_map('strtolower', $pathParts);
+        $pathParts[] = $lastPart;
+        
+        $file = $base_dir . implode('/', $pathParts) . '.php';
+    }
 
     if (file_exists($file)) {
         require $file;
@@ -105,7 +120,7 @@ spl_autoload_register(function ($class) {
     }
 }, true, true);
 
-// Simple PSR-4 autoloader for App namespace
+// Robust PSR-4 autoloader for App namespace with case-insensitive directory handling
 spl_autoload_register(function ($class) {
     $prefix = 'App\\';
     $base_dir = APP_ROOT . '/app/';
@@ -116,12 +131,27 @@ spl_autoload_register(function ($class) {
     }
 
     $relative_class = substr($class, $len);
+    
+    // Convert namespace to file path
     $file = $base_dir . str_replace('\\', '/', $relative_class) . '.php';
+    
+    // If file doesn't exist, try with lowercase directory names for subdirectories
+    if (!file_exists($file)) {
+        // Split the path into parts and lowercase directory names
+        $pathParts = explode('/', str_replace('\\', '/', $relative_class));
+        $lastPart = array_pop($pathParts); // Keep the class name as-is
+        
+        // Lowercase all directory parts
+        $pathParts = array_map('strtolower', $pathParts);
+        $pathParts[] = $lastPart;
+        
+        $file = $base_dir . implode('/', $pathParts) . '.php';
+    }
 
     if (file_exists($file)) {
         require $file;
     } else {
-        error_log("Autoloader: File not found - $file (APP_ROOT: " . APP_ROOT . ")");
+        error_log("App Autoloader: File not found - $file (Original: " . $base_dir . str_replace('\\', '/', $relative_class) . ".php, APP_ROOT: " . APP_ROOT . ")");
     }
 }, true, true);
 
