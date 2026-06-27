@@ -189,6 +189,64 @@ class UserController extends Controller
         $this->view('user.invoices', $data);
     }
 
+    public function pauseSubscription($id)
+    {
+        $user = auth();
+        
+        // Verify subscription belongs to user
+        $subscription = (new Subscription())->find($id);
+        if (!$subscription || $subscription['user_id'] !== $user['id']) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit;
+        }
+
+        // Cannot pause already paused/cancelled subscriptions
+        if ($subscription['status'] !== 'active') {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Subscription is not active']);
+            exit;
+        }
+
+        // Pause the subscription
+        (new Subscription())->pauseSubscription($id);
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Subscription paused successfully. You can resume it anytime.'
+        ]);
+        exit;
+    }
+
+    public function cancelSubscription($id)
+    {
+        $user = auth();
+        
+        // Verify subscription belongs to user
+        $subscription = (new Subscription())->find($id);
+        if (!$subscription || $subscription['user_id'] !== $user['id']) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit;
+        }
+
+        // Cannot cancel already cancelled subscriptions
+        if ($subscription['status'] === 'cancelled') {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Subscription is already cancelled']);
+            exit;
+        }
+
+        // Cancel the subscription
+        (new Subscription())->cancelSubscription($id);
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Subscription cancelled successfully.'
+        ]);
+        exit;
+    }
+
     public function invoiceDetail($id)
     {
         $user = auth();

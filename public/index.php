@@ -235,6 +235,8 @@ $router->get('dashboard/profile', 'user', 'profile');
 $router->post('dashboard/profile', 'user', 'updateProfile');
 $router->post('dashboard/change-password', 'user', 'changePassword');
 $router->get('dashboard/subscriptions', 'user', 'subscriptions');
+$router->post('dashboard/subscriptions/{id}/pause', 'user', 'pauseSubscription');
+$router->post('dashboard/subscriptions/{id}/cancel', 'user', 'cancelSubscription');
 $router->get('dashboard/invoices', 'user', 'invoices');
 $router->get('dashboard/invoices/{id}', 'user', 'invoiceDetail');
 $router->get('dashboard/payments', 'user', 'payments');

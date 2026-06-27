@@ -91,8 +91,25 @@
             confirmButtonText: 'Yes, pause it'
         }).then((result) => {
             if (result.isConfirmed) {
-                // TODO: Implement pause subscription API endpoint
-                Swal.fire('Coming Soon', 'Pause subscription feature will be available soon.', 'info');
+                fetch('<?= route("") ?>' + 'dashboard/subscriptions/' + subscriptionId + '/pause', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire('Success', data.message, 'success').then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire('Error', data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    Swal.fire('Error', 'Failed to pause subscription: ' + error, 'error');
+                });
             }
         });
     }
@@ -108,8 +125,25 @@
             confirmButtonText: 'Yes, cancel it'
         }).then((result) => {
             if (result.isConfirmed) {
-                // TODO: Implement cancel subscription API endpoint
-                Swal.fire('Coming Soon', 'Cancel subscription feature will be available soon.', 'info');
+                fetch('<?= route("") ?>' + 'dashboard/subscriptions/' + subscriptionId + '/cancel', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire('Success', data.message, 'success').then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire('Error', data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    Swal.fire('Error', 'Failed to cancel subscription: ' + error, 'error');
+                });
             }
         });
     }

@@ -36,4 +36,14 @@ class Subscription extends Model
         $stmt->execute();
         return $stmt->fetchAll();
     }
+
+    public function pauseSubscription($id)
+    {
+        return $this->update($id, ['status' => 'paused']);
+    }
+
+    public function cancelSubscription($id)
+    {
+        return $this->update($id, ['status' => 'cancelled', 'end_date' => date('Y-m-d')]);
+    }
 }
