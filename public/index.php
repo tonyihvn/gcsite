@@ -19,7 +19,7 @@ error_reporting(E_ALL);
 // Load environment variables
 require_once APP_ROOT . '/core/DotEnv.php';
 
-$env = new \Core\DotEnv(dirname(dirname(APP_ROOT)) . '/.env');
+$env = new \Core\DotEnv(APP_ROOT . '/.env');
 $env->load();
 
 // Load configuration
