@@ -15,27 +15,35 @@ session_start();
 $currentDir = __DIR__;
 $parentDir = dirname($currentDir);
 
-// Check if we're in shared hosting environment
-// On shared hosting: public_html (renamed from public) is at /home/username/public_html
-// and gcsite is at /home/username/gcsite (sibling directory)
+// Determine APP_ROOT based on folder structure
+// Try multiple paths to find the application root
 
-// First check: Look for gcsite as a sibling to public_html (correct for shared hosting)
-$siteFolderPath = $parentDir . '/gcsite';
+$possibleRoots = [
+    $parentDir . '/gcsite',                    // public_html sibling
+    dirname($parentDir) . '/gcsite',           // parent directory sibling
+    $parentDir,                                 // parent directory (local dev)
+];
 
-// Second check: Look in parent's parent for backwards compatibility
-if (!is_dir($siteFolderPath) || !file_exists($siteFolderPath . '/app')) {
-    $siteFolderPath = dirname($parentDir) . '/gcsite';
+$appRoot = null;
+foreach ($possibleRoots as $testPath) {
+    if (is_dir($testPath) && file_exists($testPath . '/app') && file_exists($testPath . '/core')) {
+        $appRoot = $testPath;
+        $isSharedHosting = ($testPath === $parentDir . '/gcsite' || $testPath === dirname($parentDir) . '/gcsite');
+        break;
+    }
 }
 
-if (is_dir($siteFolderPath) && file_exists($siteFolderPath . '/app')) {
-    // Shared hosting environment
-    define('APP_ROOT', $siteFolderPath);
-    define('IS_SHARED_HOSTING', true);
-} else {
-    // Local development environment
-    define('APP_ROOT', $parentDir);
-    define('IS_SHARED_HOSTING', false);
+// If no valid root found, default to local development
+if ($appRoot === null) {
+    $appRoot = $parentDir;
+    $isSharedHosting = false;
+    
+    // Log the attempt for debugging
+    error_log("GINTEC Bootstrap: Could not find app/core folders. Checked paths: " . implode(", ", $possibleRoots) . ". Defaulting to: $appRoot");
 }
+
+define('APP_ROOT', $appRoot);
+define('IS_SHARED_HOSTING', $isSharedHosting);
 
 define('PUBLIC_PATH', $currentDir);
 
@@ -77,6 +85,26 @@ require_once APP_ROOT . '/core/FileUploader.php';
 // Load helpers
 require_once APP_ROOT . '/app/helpers/functions.php';
 
+// Autoloader for Core namespace
+spl_autoload_register(function ($class) {
+    $prefix = 'Core\\';
+    $base_dir = APP_ROOT . '/core/';
+
+    $len = strlen($prefix);
+    if (strncmp($prefix, $class, $len) !== 0) {
+        return;
+    }
+
+    $relative_class = substr($class, $len);
+    $file = $base_dir . str_replace('\\', '/', $relative_class) . '.php';
+
+    if (file_exists($file)) {
+        require $file;
+    } else {
+        error_log("Core Autoloader: File not found - $file");
+    }
+}, true, true);
+
 // Simple PSR-4 autoloader for App namespace
 spl_autoload_register(function ($class) {
     $prefix = 'App\\';
@@ -92,8 +120,10 @@ spl_autoload_register(function ($class) {
 
     if (file_exists($file)) {
         require $file;
+    } else {
+        error_log("Autoloader: File not found - $file (APP_ROOT: " . APP_ROOT . ")");
     }
-});
+}, true, true);
 
 // Set error handler
 set_error_handler(function($errno, $errstr, $errfile, $errline) {

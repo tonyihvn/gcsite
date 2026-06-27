@@ -52,6 +52,7 @@ class Router
             $requestPath = '';
         }
 
+        // Check exact route match
         if (isset($this->routes[$requestMethod][$requestPath])) {
             $route = $this->routes[$requestMethod][$requestPath];
             $this->currentRoute = $route;
@@ -59,17 +60,24 @@ class Router
         }
 
         // Try to match dynamic routes
-        foreach ($this->routes[$requestMethod] ?? [] as $path => $route) {
-            if ($this->matchRoute($path, $requestPath, $matches)) {
-                $route['params'] = $matches;
-                $this->currentRoute = $route;
-                return $this->call($route['controller'], $route['method'], $matches);
+        if (isset($this->routes[$requestMethod])) {
+            foreach ($this->routes[$requestMethod] as $path => $route) {
+                if ($this->matchRoute($path, $requestPath, $matches)) {
+                    $route['params'] = $matches;
+                    $this->currentRoute = $route;
+                    return $this->call($route['controller'], $route['method'], $matches);
+                }
             }
         }
 
         // 404 Not Found
         http_response_code(404);
-        include __DIR__ . '/../app/views/errors/404.php';
+        $errorFile = __DIR__ . '/../app/views/errors/404.php';
+        if (file_exists($errorFile)) {
+            include $errorFile;
+        } else {
+            echo "404 - Page not found";
+        }
         exit;
     }
 
@@ -91,14 +99,20 @@ class Router
         $controllerClass = 'App\\Controllers\\' . ucfirst($controller) . 'Controller';
 
         if (!class_exists($controllerClass)) {
-            http_response_code(404);
-            die("Controller not found: $controllerClass");
+            $appRoot = defined('APP_ROOT') ? APP_ROOT : 'UNKNOWN';
+            $expectedPath = $appRoot . '/app/Controllers/' . ucfirst($controller) . 'Controller.php';
+            error_log("Controller class not found: $controllerClass. Expected file: $expectedPath");
+            http_response_code(500);
+            die("Controller not found: $controllerClass\n" .
+                "Expected file: $expectedPath\n" .
+                "APP_ROOT: $appRoot\n" .
+                "Check error logs for more details.");
         }
 
         $instance = new $controllerClass();
         
         if (!method_exists($instance, $method)) {
-            http_response_code(404);
+            http_response_code(500);
             die("Method not found: $method in $controllerClass");
         }
 
