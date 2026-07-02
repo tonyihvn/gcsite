@@ -3,15 +3,30 @@ namespace Core;
 
 class FileUploader
 {
-    private $uploadDir = 'assets/uploads';
+    private $uploadDir;
+    private $baseUploadRelativePath = 'assets/uploads'; // Relative to public directory
     private $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
     private $maxFileSize = 5242880; // 5MB
 
     public function __construct()
     {
-        // Ensure upload directory exists
+        // Determine the public directory based on current script location
+        // This works for both local development and production environments
+        if (strpos($_SERVER['SCRIPT_FILENAME'], 'public') !== false) {
+            // Script is running from public directory
+            $publicDir = dirname($_SERVER['SCRIPT_FILENAME']);
+        } else {
+            // Script is in subdirectory, use public folder one level up
+            $publicDir = dirname(__DIR__) . '/public';
+        }
+        
+        $this->uploadDir = $publicDir . '/' . $this->baseUploadRelativePath;
+        
+        // Ensure upload directory exists with proper permissions
         if (!is_dir($this->uploadDir)) {
-            mkdir($this->uploadDir, 0755, true);
+            if (!mkdir($this->uploadDir, 0755, true)) {
+                error_log('Failed to create upload directory: ' . $this->uploadDir);
+            }
         }
     }
 
@@ -48,7 +63,9 @@ class FileUploader
         if ($subdir) {
             $uploadPath .= '/' . trim($subdir, '/');
             if (!is_dir($uploadPath)) {
-                mkdir($uploadPath, 0755, true);
+                if (!mkdir($uploadPath, 0755, true)) {
+                    throw new \Exception('Failed to create upload subdirectory: ' . $uploadPath);
+                }
             }
         }
 
@@ -58,8 +75,9 @@ class FileUploader
 
         // Move uploaded file
         if (move_uploaded_file($file['tmp_name'], $filepath)) {
-            // Return relative path for storage
-            return str_replace('\\', '/', $filepath);
+            // Return relative path for storage (relative to public directory)
+            $relativePath = $this->baseUploadRelativePath . ($subdir ? '/' . trim($subdir, '/') : '') . '/' . $filename;
+            return str_replace('\\', '/', $relativePath);
         }
 
         throw new \Exception('Failed to move uploaded file');
@@ -124,9 +142,22 @@ class FileUploader
             return $imagePath;
         }
 
-        // If it's an uploaded file, serve from web root
+        // If it's an uploaded file, construct the proper URL
         if (self::isUploadedFile($imagePath)) {
-            return '/' . $imagePath;
+            // Get the base URL from config if available
+            $baseUrl = defined('APP_URL') ? APP_URL : (isset($_ENV['APP_URL']) ? $_ENV['APP_URL'] : '');
+            
+            if (empty($baseUrl)) {
+                // Fallback to protocol + host
+                $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';
+                $baseUrl = $protocol . $_SERVER['HTTP_HOST'];
+            }
+            
+            // Ensure base URL ends without trailing slash
+            $baseUrl = rtrim($baseUrl, '/');
+            
+            // Construct full URL
+            return $baseUrl . '/' . $imagePath;
         }
 
         // Default fallback
