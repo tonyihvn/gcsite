@@ -4,11 +4,10 @@
 
     <div class="row">
         <div class="col-md-8">
-            <?php if (!empty($product['image_url'])): ?>
-            <img src="<?= htmlspecialchars(\Core\FileUploader::getImageUrl($product['image_url'])) ?>" class="img-fluid mb-4" alt="<?= htmlspecialchars($product['name']) ?>">
-            <?php endif; ?>
-
             <div class="card mb-4">
+                <?php if (!empty($product['image_url'])): ?>
+                <img src="<?= htmlspecialchars(\Core\FileUploader::getImageUrl($product['image_url'])) ?>" class="card-img-top" alt="<?= htmlspecialchars($product['name']) ?>" style="width: 100%; max-height: 400px; object-fit: contain; background: #ffffff;">
+                <?php endif; ?>
                 <div class="card-body">
                     <h5 class="card-title">Product Overview</h5>
                     <div><?= strip_tags($product['description'] ?? '') ?></div>

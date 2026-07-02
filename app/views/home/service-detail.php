@@ -4,11 +4,10 @@
 
     <div class="row">
         <div class="col-md-8">
-            <?php if (!empty($service['image_url'])): ?>
-            <img src="<?= htmlspecialchars(\Core\FileUploader::getImageUrl($service['image_url'])) ?>" class="img-fluid mb-4" alt="<?= htmlspecialchars($service['name']) ?>">
-            <?php endif; ?>
-
             <div class="card mb-4">
+                <?php if (!empty($service['image_url'])): ?>
+                <img src="<?= htmlspecialchars(\Core\FileUploader::getImageUrl($service['image_url'])) ?>" class="card-img-top" alt="<?= htmlspecialchars($service['name']) ?>" style="width: 100%; max-height: 400px; object-fit: contain; background: #ffffff;">
+                <?php endif; ?>
                 <div class="card-body">
                     <h5 class="card-title">About This Service</h5>
                     <p><?= nl2br(htmlspecialchars(strip_tags($service['description'] ?? ''))) ?></p>
