@@ -4,23 +4,32 @@ namespace Core;
 class FileUploader
 {
     private $uploadDir;
-    private $baseUploadRelativePath = 'assets/uploads'; // Relative to public directory
+    private $baseUploadRelativePath = 'uploads'; // Now relative to public_html root
     private $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
     private $maxFileSize = 5242880; // 5MB
 
     public function __construct()
     {
-        // Determine the public directory based on current script location
-        // This works for both local development and production environments
-        if (strpos($_SERVER['SCRIPT_FILENAME'], 'public') !== false) {
-            // Script is running from public directory
-            $publicDir = dirname($_SERVER['SCRIPT_FILENAME']);
-        } else {
-            // Script is in subdirectory, use public folder one level up
-            $publicDir = dirname(__DIR__) . '/public';
-        }
+        // Detect environment and determine upload directory
+        $currentDir = dirname($_SERVER['SCRIPT_FILENAME']);
         
-        $this->uploadDir = $publicDir . '/' . $this->baseUploadRelativePath;
+        // Check if we're in shared hosting (gcsite/public structure)
+        if (strpos($currentDir, 'gcsite') !== false) {
+            // Shared hosting: go up to public_html root
+            // Path: /public_html/gcsite/public -> go up 2 levels to /public_html
+            $publicHtmlRoot = dirname(dirname($currentDir));
+            
+            // Check if uploads folder is in parent directory
+            if (is_dir($publicHtmlRoot . '/../uploads')) {
+                $this->uploadDir = $publicHtmlRoot . '/../uploads';
+            } else {
+                // Default to /public_html/uploads
+                $this->uploadDir = $publicHtmlRoot . '/uploads';
+            }
+        } else {
+            // Local development: use public/assets/uploads
+            $this->uploadDir = $currentDir . '/assets/uploads';
+        }
         
         // Ensure upload directory exists with proper permissions
         if (!is_dir($this->uploadDir)) {
@@ -131,7 +140,7 @@ class FileUploader
      */
     public static function isUploadedFile($path)
     {
-        return $path && strpos($path, 'assets/uploads') === 0;
+        return $path && (strpos($path, 'uploads/') === 0 || strpos($path, 'assets/uploads/') === 0);
     }
 
     /**
@@ -153,6 +162,9 @@ class FileUploader
 
         // If it's an uploaded file, construct the proper URL
         if (self::isUploadedFile($imagePath)) {
+            // Normalize path - remove assets/ prefix if present
+            $imagePath = str_replace('assets/', '', $imagePath);
+            
             // Get the base URL from config if available
             $baseUrl = defined('APP_URL') ? APP_URL : (isset($_ENV['APP_URL']) ? $_ENV['APP_URL'] : '');
             
