@@ -41,11 +41,15 @@ class AdminController extends Controller
         $uploader = new \Core\FileUploader();
 
         try {
-            if (isset($_FILES[$fileInputName]) && $_FILES[$fileInputName]['error'] !== UPLOAD_ERR_NO_FILE) {
+            // Only proceed if file was actually uploaded (error === UPLOAD_ERR_OK)
+            if (isset($_FILES[$fileInputName]) && $_FILES[$fileInputName]['error'] === UPLOAD_ERR_OK) {
                 $uploadedPath = $uploader->upload($fileInputName, $subdir);
                 if ($uploadedPath) {
                     return $uploadedPath;
                 }
+            } elseif (isset($_FILES[$fileInputName]) && $_FILES[$fileInputName]['error'] !== UPLOAD_ERR_NO_FILE) {
+                // File was attempted to be uploaded but had an error
+                error_log('Upload error for ' . $fileInputName . ': ' . $this->getUploadErrorMessage($_FILES[$fileInputName]['error']));
             }
         } catch (\Exception $e) {
             error_log('Upload error: ' . $e->getMessage());
@@ -63,7 +67,8 @@ class AdminController extends Controller
     protected function handleFileUpload($fileInputName, $subdir = 'files', $currentPath = '')
     {
         try {
-            if (isset($_FILES[$fileInputName]) && $_FILES[$fileInputName]['error'] !== UPLOAD_ERR_NO_FILE) {
+            // Only proceed if file was actually uploaded (error === UPLOAD_ERR_OK)
+            if (isset($_FILES[$fileInputName]) && $_FILES[$fileInputName]['error'] === UPLOAD_ERR_OK) {
                 $file = $_FILES[$fileInputName];
                 $allowed_types = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
                 $allowed_exts = ['pdf', 'doc', 'docx'];
@@ -93,8 +98,12 @@ class AdminController extends Controller
                 // Move uploaded file
                 if (move_uploaded_file($file['tmp_name'], $destination)) {
                     chmod($destination, 0644);
-                    return 'uploads/' . $subdir . '/' . $filename;
+                    // Return with assets/uploads path format for consistency
+                    return 'assets/uploads/' . $subdir . '/' . $filename;
                 }
+            } elseif (isset($_FILES[$fileInputName]) && $_FILES[$fileInputName]['error'] !== UPLOAD_ERR_NO_FILE) {
+                // File was attempted to be uploaded but had an error
+                error_log('File upload error for ' . $fileInputName . ': ' . $this->getUploadErrorMessage($_FILES[$fileInputName]['error']));
             }
         } catch (\Exception $e) {
             error_log('File upload error: ' . $e->getMessage());
@@ -102,6 +111,23 @@ class AdminController extends Controller
         
         // Return existing file if no new upload
         return $currentPath;
+    }
+
+    /**
+     * Get human-readable upload error message
+     */
+    private function getUploadErrorMessage($errorCode)
+    {
+        $errors = [
+            UPLOAD_ERR_INI_SIZE => 'File exceeds upload_max_filesize directive',
+            UPLOAD_ERR_FORM_SIZE => 'File exceeds MAX_FILE_SIZE form directive',
+            UPLOAD_ERR_PARTIAL => 'File was only partially uploaded',
+            UPLOAD_ERR_NO_FILE => 'No file was uploaded',
+            UPLOAD_ERR_NO_TMP_DIR => 'Missing temporary folder',
+            UPLOAD_ERR_CANT_WRITE => 'Failed to write file to disk',
+            UPLOAD_ERR_EXTENSION => 'File upload stopped by extension'
+        ];
+        return $errors[$errorCode] ?? 'Unknown upload error (' . $errorCode . ')';
     }
 
     // ===== DASHBOARD =====
