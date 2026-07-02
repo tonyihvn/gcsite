@@ -9,6 +9,7 @@ DEPLOYMENT_CHECKLIST.md
 migrate.php
 migrate-run.php
 create_upload_dirs.php
+router.php
 /public/create-admin.php
 /public/run-*.php
 .env.production.example
