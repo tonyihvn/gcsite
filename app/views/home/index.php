@@ -158,6 +158,7 @@
     transition: all 0.3s ease;
     border-top: 4px solid #667eea;
     margin-bottom: 30px;
+    overflow: hidden;
 }
 
 .service-card:hover {
@@ -401,7 +402,7 @@
                 <div class="product-card">
                     <div class="product-image">
                         <?php if (!empty($product['image_url'])): ?>
-                            <img src="<?= \Core\FileUploader::getImageUrl($product['image_url']) ?>" alt="<?= htmlspecialchars($product['name']) ?>" style="width: 100%; height: 100%; object-fit: contain; background: #ffffff; padding: 12px;">
+                            <img src="<?= \Core\FileUploader::getImageUrl($product['image_url']) ?>" alt="<?= htmlspecialchars($product['name']) ?>" style="width: 100%; height: 100%; object-fit: contain; background: #ffffff;">
                         <?php else: ?>
                             <div style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-size: 60px; color: white;">
                                 <?php echo strtoupper(substr($product['name'], 0, 1)); ?>
@@ -438,7 +439,7 @@
             <div class="col-lg-4 col-md-6">
                 <div class="service-card">
                     <?php if (!empty($service['image_url'])): ?>
-                        <img src="<?= \Core\FileUploader::getImageUrl($service['image_url']) ?>" alt="<?= htmlspecialchars($service['name']) ?>" style="width: 100%; height: 180px; object-fit: contain; background: #f8f9fa; border-radius: 5px; margin-bottom: 20px; padding: 12px;">
+                        <img src="<?= \Core\FileUploader::getImageUrl($service['image_url']) ?>" alt="<?= htmlspecialchars($service['name']) ?>" style="display: block; width: calc(100% + 80px); height: 180px; object-fit: contain; background: #f8f9fa; margin: -40px -40px 20px -40px;">
                     <?php else: ?>
                         <div class="service-icon">📊</div>
                     <?php endif; ?>
