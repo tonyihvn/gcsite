@@ -38,7 +38,13 @@ class FileUploader
      */
     public function upload($inputName, $subdir = '')
     {
-        if (!isset($_FILES[$inputName]) || $_FILES[$inputName]['error'] === UPLOAD_ERR_NO_FILE) {
+        if (!isset($_FILES[$inputName])) {
+            error_log("FileUploader: $_FILES[$inputName] not set");
+            return null;
+        }
+        
+        if ($_FILES[$inputName]['error'] === UPLOAD_ERR_NO_FILE) {
+            error_log("FileUploader: No file uploaded for $inputName");
             return null; // No file uploaded
         }
 
@@ -46,16 +52,27 @@ class FileUploader
 
         // Validate file
         if ($file['error'] !== UPLOAD_ERR_OK) {
-            throw new \Exception('File upload error: ' . $this->getUploadErrorMessage($file['error']));
+            $errorMsg = 'File upload error: ' . $this->getUploadErrorMessage($file['error']);
+            error_log("FileUploader: $errorMsg for input '$inputName'");
+            throw new \Exception($errorMsg);
+        }
+
+        if ($file['size'] <= 0) {
+            error_log("FileUploader: File size is 0 for '$inputName'");
+            throw new \Exception('File size is invalid');
         }
 
         if ($file['size'] > $this->maxFileSize) {
-            throw new \Exception('File size exceeds maximum limit of 5MB');
+            $msg = 'File size exceeds maximum limit of 5MB (Got: ' . ($file['size'] / 1024 / 1024) . 'MB)';
+            error_log("FileUploader: $msg");
+            throw new \Exception($msg);
         }
 
         $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
         if (!in_array($ext, $this->allowedExtensions)) {
-            throw new \Exception('File type not allowed. Allowed: ' . implode(', ', $this->allowedExtensions));
+            $msg = 'File type not allowed. File: ' . $file['name'] . ', Extension: ' . $ext . ', Allowed: ' . implode(', ', $this->allowedExtensions);
+            error_log("FileUploader: $msg");
+            throw new \Exception($msg);
         }
 
         // Create subdirectory if specified
@@ -63,12 +80,21 @@ class FileUploader
         if ($subdir) {
             $uploadPath .= '/' . trim($subdir, '/');
             if (!is_dir($uploadPath)) {
+                error_log("FileUploader: Creating directory: $uploadPath");
                 if (!mkdir($uploadPath, 0755, true)) {
-                    error_log("FileUploader: Failed to create directory '$uploadPath'. Parent writable: " . (is_writable(dirname($uploadPath)) ? 'yes' : 'no'));
+                    $parentWritable = is_writable(dirname($uploadPath));
+                    error_log("FileUploader: Failed to create directory '$uploadPath'. Parent writable: " . ($parentWritable ? 'yes' : 'no') . ". Parent dir: " . dirname($uploadPath));
                     throw new \Exception('Failed to create upload subdirectory: ' . $uploadPath);
                 }
                 chmod($uploadPath, 0755);
+                error_log("FileUploader: Directory created successfully: $uploadPath");
             }
+        }
+
+        // Validate temp file exists
+        if (!is_uploaded_file($file['tmp_name'])) {
+            error_log("FileUploader: Uploaded file is not valid (is_uploaded_file failed): " . $file['tmp_name']);
+            throw new \Exception('Invalid uploaded file: ' . $file['tmp_name']);
         }
 
         // Generate unique filename
@@ -76,12 +102,19 @@ class FileUploader
         $filepath = $uploadPath . '/' . $filename;
 
         // Move uploaded file
+        error_log("FileUploader: Moving uploaded file from '{$file['tmp_name']}' to '$filepath'");
         if (move_uploaded_file($file['tmp_name'], $filepath)) {
             // Set proper permissions
             chmod($filepath, 0644);
             
+            // Verify file was actually created
+            if (!file_exists($filepath)) {
+                error_log("FileUploader: File move succeeded but file doesn't exist: $filepath");
+                throw new \Exception('File was moved but cannot be verified');
+            }
+            
             // Log successful upload
-            error_log("FileUploader: Successfully uploaded '$file[name]' to '$filepath'");
+            error_log("FileUploader: Successfully uploaded '{$file['name']}' to '$filepath' (Size: {$file['size']} bytes)");
             
             // Return relative path for storage (relative to public directory)
             $relativePath = $this->baseUploadRelativePath . ($subdir ? '/' . trim($subdir, '/') : '') . '/' . $filename;

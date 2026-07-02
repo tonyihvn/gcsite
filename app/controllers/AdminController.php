@@ -42,25 +42,39 @@ class AdminController extends Controller
 
         try {
             // Only proceed if file was actually uploaded (error === UPLOAD_ERR_OK)
-            if (isset($_FILES[$fileInputName]) && $_FILES[$fileInputName]['error'] === UPLOAD_ERR_OK) {
-                $uploadedPath = $uploader->upload($fileInputName, $subdir);
-                if ($uploadedPath) {
-                    return $uploadedPath;
+            if (isset($_FILES[$fileInputName])) {
+                error_log("handleImageUpload: Processing upload for '$fileInputName' with error code: {$_FILES[$fileInputName]['error']}");
+                
+                if ($_FILES[$fileInputName]['error'] === UPLOAD_ERR_OK) {
+                    error_log("handleImageUpload: File ready, calling uploader->upload() for subdir: '$subdir'");
+                    $uploadedPath = $uploader->upload($fileInputName, $subdir);
+                    if ($uploadedPath) {
+                        error_log("handleImageUpload: Upload successful, path: $uploadedPath");
+                        return $uploadedPath;
+                    } else {
+                        error_log("handleImageUpload: Uploader returned null/empty path");
+                    }
+                } elseif ($_FILES[$fileInputName]['error'] !== UPLOAD_ERR_NO_FILE) {
+                    // File was attempted to be uploaded but had an error
+                    error_log('handleImageUpload: Upload error for ' . $fileInputName . ': ' . $this->getUploadErrorMessage($_FILES[$fileInputName]['error']));
+                } else {
+                    error_log("handleImageUpload: No file provided (UPLOAD_ERR_NO_FILE)");
                 }
-            } elseif (isset($_FILES[$fileInputName]) && $_FILES[$fileInputName]['error'] !== UPLOAD_ERR_NO_FILE) {
-                // File was attempted to be uploaded but had an error
-                error_log('Upload error for ' . $fileInputName . ': ' . $this->getUploadErrorMessage($_FILES[$fileInputName]['error']));
+            } else {
+                error_log("handleImageUpload: \$_FILES['$fileInputName'] not set");
             }
         } catch (\Exception $e) {
-            error_log('Upload error: ' . $e->getMessage());
+            error_log('handleImageUpload: Exception caught: ' . $e->getMessage());
         }
 
         // Fallback to URL input if provided
         if (!empty($_POST[$urlInputName])) {
+            error_log("handleImageUpload: Using URL input fallback: " . $_POST[$urlInputName]);
             return $_POST[$urlInputName];
         }
 
         // Return existing image if no new upload
+        error_log("handleImageUpload: Returning current path or empty: '$currentPath'");
         return $currentPath;
     }
 
