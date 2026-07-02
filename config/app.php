@@ -9,6 +9,17 @@ require_once __DIR__ . '/../core/DotEnv.php';
 $env = new \Core\DotEnv(__DIR__ . '/../.env');
 $env->load();
 
+// Determine upload directory based on environment
+$scriptPath = $_SERVER['SCRIPT_FILENAME'] ?? '';
+if (strpos($scriptPath, 'gcsite') !== false) {
+    // Shared hosting: use /public_html/uploads/
+    $publicHtmlRoot = dirname(dirname(dirname($scriptPath)));
+    $uploadDir = $publicHtmlRoot . '/uploads/';
+} else {
+    // Local development: use public/assets/uploads/
+    $uploadDir = __DIR__ . '/../public/assets/uploads/';
+}
+
 return [
     'name' => $_ENV['APP_NAME'] ?? 'GINTEC Solutions Consults Ltd',
     'url' => $_ENV['APP_URL'] ?? 'http://localhost/gintec',
@@ -38,6 +49,6 @@ return [
     'upload' => [
         'max_size' => $_ENV['MAX_UPLOAD_SIZE'] ?? 10485760,
         'allowed_extensions' => explode(',', $_ENV['ALLOWED_EXTENSIONS'] ?? 'jpg,jpeg,png,gif,pdf'),
-        'directory' => __DIR__ . '/../public/assets/uploads/',
+        'directory' => $uploadDir,
     ],
 ];

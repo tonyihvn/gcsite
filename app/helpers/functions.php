@@ -71,7 +71,7 @@ function asset($path)
 
 function upload_path($path)
 {
-    return 'assets/uploads/' . ltrim($path, '/');
+    return 'uploads/' . ltrim($path, '/');
 }
 
 function flash($key = null)

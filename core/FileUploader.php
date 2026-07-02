@@ -11,30 +11,30 @@ class FileUploader
     public function __construct()
     {
         // Detect environment and determine upload directory
-        $currentDir = dirname($_SERVER['SCRIPT_FILENAME']);
+        $scriptPath = $_SERVER['SCRIPT_FILENAME'];
+        error_log('FileUploader: Script path = ' . $scriptPath);
         
         // Check if we're in shared hosting (gcsite/public structure)
-        if (strpos($currentDir, 'gcsite') !== false) {
-            // Shared hosting: go up to public_html root
-            // Path: /public_html/gcsite/public -> go up 2 levels to /public_html
-            $publicHtmlRoot = dirname(dirname($currentDir));
-            
-            // Check if uploads folder is in parent directory
-            if (is_dir($publicHtmlRoot . '/../uploads')) {
-                $this->uploadDir = $publicHtmlRoot . '/../uploads';
-            } else {
-                // Default to /public_html/uploads
-                $this->uploadDir = $publicHtmlRoot . '/uploads';
-            }
+        if (strpos($scriptPath, 'gcsite') !== false) {
+            // Shared hosting: uploads go to /public_html/uploads/
+            // Script is at: /public_html/gcsite/public/index.php or similar
+            $publicHtmlRoot = dirname(dirname(dirname($scriptPath))); // Go up 3 levels to /public_html
+            $this->uploadDir = $publicHtmlRoot . '/uploads';
+            error_log('FileUploader: Shared hosting detected. Upload dir = ' . $this->uploadDir);
         } else {
             // Local development: use public/assets/uploads
-            $this->uploadDir = $currentDir . '/assets/uploads';
+            $publicDir = dirname($scriptPath);
+            $this->uploadDir = $publicDir . '/assets/uploads';
+            error_log('FileUploader: Local development. Upload dir = ' . $this->uploadDir);
         }
         
         // Ensure upload directory exists with proper permissions
         if (!is_dir($this->uploadDir)) {
             if (!mkdir($this->uploadDir, 0755, true)) {
-                error_log('Failed to create upload directory: ' . $this->uploadDir);
+                error_log('FileUploader: FAILED to create upload directory: ' . $this->uploadDir);
+            } else {
+                error_log('FileUploader: Created upload directory: ' . $this->uploadDir);
+                chmod($this->uploadDir, 0755);
             }
         }
     }
