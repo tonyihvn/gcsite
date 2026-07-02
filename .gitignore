@@ -3,6 +3,16 @@
 .env.local
 .env.*.local
 
+# Non-production files (should not be deployed)
+QUICK_REFERENCE.md
+DEPLOYMENT_CHECKLIST.md
+migrate.php
+migrate-run.php
+create_upload_dirs.php
+/public/create-admin.php
+/public/run-*.php
+.env.production.example
+
 # IDE & Editor
 .vscode/
 .idea/
@@ -33,3 +43,4 @@ Thumbs.db
 
 # Local development
 local.php
+
