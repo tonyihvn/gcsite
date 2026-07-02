@@ -273,20 +273,30 @@
     </div>
     <div class="carousel-inner">
         <?php foreach ($slides as $index => $slide): ?>
-            <div class="carousel-item <?= $index === 0 ? 'active' : '' ?>" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 400px; display: flex; align-items: center; justify-content: center; color: white; text-align: center; position: relative;">
+            <div class="carousel-item <?= $index === 0 ? 'active' : '' ?>" style="min-height: 500px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); position: relative; overflow: hidden;">
+                <!-- Background Image -->
                 <?php if (!empty($slide['image_url'])): ?>
-                    <img src="<?= \Core\FileUploader::getImageUrl($slide['image_url']) ?>" alt="<?= htmlspecialchars($slide['title'] ?? '') ?>" style="position: absolute; width: 100%; height: 100%; object-fit: cover; opacity: 0.3;">
+                    <img src="<?= \Core\FileUploader::getImageUrl($slide['image_url']) ?>" alt="<?= htmlspecialchars($slide['title'] ?? '') ?>" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.4; z-index: 0;">
                 <?php endif; ?>
-                <div style="position: relative; z-index: 1;">
-                    <?php if (!empty($slide['title'])): ?>
-                        <h2 class="carousel-title" style="font-size: 3rem; font-weight: 700; margin-bottom: 20px;"><?= htmlspecialchars($slide['title']) ?></h2>
-                    <?php endif; ?>
-                    <?php if (!empty($slide['description'])): ?>
-                        <p class="carousel-description" style="font-size: 1.3rem; margin-bottom: 30px; opacity: 0.9;"><?= htmlspecialchars($slide['description']) ?></p>
-                    <?php endif; ?>
-                    <?php if (!empty($slide['button_text']) && !empty($slide['link_url'])): ?>
-                        <a href="<?= htmlspecialchars($slide['link_url']) ?>" class="btn btn-light btn-lg"><?= htmlspecialchars($slide['button_text']) ?></a>
-                    <?php endif; ?>
+                
+                <!-- Dark Overlay -->
+                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.3); z-index: 1;"></div>
+                
+                <!-- Content -->
+                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; z-index: 2; padding: 40px 20px;">
+                    <div style="text-align: center; color: white; max-width: 800px;">
+                        <?php if (!empty($slide['title'])): ?>
+                            <h2 class="carousel-title" style="font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 700; margin-bottom: 20px; line-height: 1.2; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);"><?= htmlspecialchars($slide['title']) ?></h2>
+                        <?php endif; ?>
+                        <?php if (!empty($slide['description'])): ?>
+                            <p class="carousel-description" style="font-size: clamp(1rem, 2vw, 1.3rem); margin-bottom: 30px; opacity: 0.95; line-height: 1.6; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);"><?= htmlspecialchars($slide['description']) ?></p>
+                        <?php endif; ?>
+                        <?php if (!empty($slide['button_text']) && !empty($slide['link_url'])): ?>
+                            <div style="margin-top: 30px;">
+                                <a href="<?= htmlspecialchars($slide['link_url']) ?>" class="btn btn-light btn-lg" style="font-weight: 600; padding: 12px 40px;"><?= htmlspecialchars($slide['button_text']) ?></a>
+                            </div>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </div>
         <?php endforeach; ?>
@@ -300,6 +310,42 @@
         <span class="visually-hidden">Next</span>
     </button>
 </div>
+
+<!-- Carousel Responsive CSS -->
+<style>
+    @media (max-width: 768px) {
+        .carousel-item {
+            min-height: 350px !important;
+        }
+        .carousel-title {
+            font-size: 1.8rem !important;
+        }
+        .carousel-description {
+            font-size: 1rem !important;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .carousel-item {
+            min-height: 300px !important;
+        }
+        .carousel-title {
+            font-size: 1.5rem !important;
+        }
+        .carousel-description {
+            font-size: 0.95rem !important;
+            margin-bottom: 20px !important;
+        }
+        .btn-lg {
+            padding: 10px 25px !important;
+            font-size: 0.95rem !important;
+        }
+    }
+    
+    #homeCarousel .carousel-item {
+        transition: opacity 0.6s ease-in-out;
+    }
+</style>
 <?php endif; ?>
 
 <!-- Hero Section -->
