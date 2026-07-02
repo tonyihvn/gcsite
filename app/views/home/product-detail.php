@@ -10,15 +10,22 @@
                 <?php endif; ?>
                 <div class="card-body">
                     <h5 class="card-title">Product Overview</h5>
-                    <div><?= strip_tags($product['description'] ?? '') ?></div>
+                    <?php $desc = $product['description'] ?? ''; ?>
+                    <div class="rich-content"><?= $desc === strip_tags($desc) ? nl2br(htmlspecialchars($desc)) : $desc ?></div>
                     
-                    <?php if (!empty($product['features'])): ?>
+                    <?php if (!empty(trim(strip_tags($product['features'] ?? '')))): ?>
                     <h6 class="mt-4">Key Features</h6>
-                    <ul>
-                        <?php foreach (explode(',', $product['features']) as $feature): ?>
-                        <li><?= htmlspecialchars(trim($feature)) ?></li>
-                        <?php endforeach; ?>
-                    </ul>
+                    <?php $features = trim($product['features']); ?>
+                    <?php if ($features !== strip_tags($features)): // rich HTML produced by the editor ?>
+                        <div class="rich-content"><?= $features ?></div>
+                    <?php else: // legacy comma / newline separated list ?>
+                        <ul>
+                            <?php foreach (preg_split('/[\r\n,]+/', $features) as $feature): ?>
+                                <?php if (trim($feature) === '') { continue; } ?>
+                                <li><?= htmlspecialchars(trim($feature)) ?></li>
+                            <?php endforeach; ?>
+                        </ul>
+                    <?php endif; ?>
                     <?php endif; ?>
                 </div>
             </div>

@@ -185,5 +185,34 @@
                 .catch(error => console.error(error));
         });
     </script>
+
+    <!-- ===== Media Library Picker Modal ===== -->
+    <div class="modal fade" id="mediaLibraryModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-images"></i> Media Library</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="mediaUploadForm" class="mb-3">
+                        <div class="input-group">
+                            <input type="file" class="form-control" id="mediaUploadInput" name="media_file" accept="image/*">
+                            <button class="btn btn-primary" type="submit"><i class="fas fa-upload"></i> Upload New</button>
+                        </div>
+                        <small class="text-muted">JPG, PNG, GIF, WebP (Max 5MB). Click an image to select it.</small>
+                    </form>
+                    <div id="mediaLibraryStatus" class="text-muted small mb-2">Loading images&hellip;</div>
+                    <div class="row g-2" id="mediaLibraryGrid"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.BASE_URL = <?= json_encode(rtrim(config('url'), '/')) ?>;
+        window.CSRF_TOKEN = <?= json_encode(csrf_token()) ?>;
+    </script>
+    <script src="<?= asset('js/media-picker.js') ?>"></script>
 </body>
 </html>

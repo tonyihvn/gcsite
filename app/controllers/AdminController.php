@@ -1246,7 +1246,8 @@ class AdminController extends Controller
     public function media()
     {
         $data = [
-            'page_title' => 'Media Gallery',
+            'page_title' => 'Media Library',
+            'images'     => $this->scanUploadedImages(),
         ];
         $this->view('admin.media', $data);
     }
@@ -1261,6 +1262,148 @@ class AdminController extends Controller
     {
         set_flash('success', 'Media deleted successfully');
         $this->redirect('admin/media');
+    }
+
+    /**
+     * Absolute filesystem path to the uploads root (works locally & on shared hosting).
+     */
+    private function uploadsRoot()
+    {
+        return rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_FILENAME'])), '/') . '/assets/uploads';
+    }
+
+    /**
+     * Scan the uploads folder and return every image with its relative path and URL.
+     */
+    private function scanUploadedImages()
+    {
+        $root = $this->uploadsRoot();
+        $images = [];
+        if (!is_dir($root)) {
+            return $images;
+        }
+
+        $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($root, \FilesystemIterator::SKIP_DOTS)
+        );
+
+        foreach ($iterator as $file) {
+            if (!$file->isFile()) {
+                continue;
+            }
+            if (!in_array(strtolower($file->getExtension()), $allowed, true)) {
+                continue;
+            }
+            $full = str_replace('\\', '/', $file->getPathname());
+            $rel  = 'assets/uploads' . substr($full, strlen($root));
+            $images[] = [
+                'path'  => $rel,
+                'url'   => \Core\FileUploader::getImageUrl($rel),
+                'name'  => $file->getFilename(),
+                'size'  => $this->humanFileSize($file->getSize()),
+                'mtime' => $file->getMTime(),
+            ];
+        }
+
+        usort($images, function ($a, $b) {
+            return $b['mtime'] <=> $a['mtime'];
+        });
+
+        return $images;
+    }
+
+    private function humanFileSize($bytes)
+    {
+        $units = ['B', 'KB', 'MB', 'GB'];
+        $i = 0;
+        while ($bytes >= 1024 && $i < count($units) - 1) {
+            $bytes /= 1024;
+            $i++;
+        }
+        return round($bytes, 1) . ' ' . $units[$i];
+    }
+
+    /**
+     * JSON endpoint: list all uploaded images for the media-picker modal.
+     */
+    public function mediaLibrary()
+    {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => true, 'images' => $this->scanUploadedImages()]);
+        exit;
+    }
+
+    /**
+     * JSON endpoint: upload a new image from the media-picker modal.
+     */
+    public function mediaBrowserUpload()
+    {
+        header('Content-Type: application/json');
+
+        if (!\Core\Security::verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Invalid security token']);
+            exit;
+        }
+
+        try {
+            $path = (new \Core\FileUploader())->upload('media_file', 'media');
+            if (!$path) {
+                echo json_encode(['success' => false, 'message' => 'No file was uploaded']);
+                exit;
+            }
+            echo json_encode([
+                'success' => true,
+                'image'   => [
+                    'path' => $path,
+                    'url'  => \Core\FileUploader::getImageUrl($path),
+                    'name' => basename($path),
+                    'size' => '',
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        }
+        exit;
+    }
+
+    /**
+     * JSON endpoint: delete an uploaded image. Restricted to files inside assets/uploads.
+     */
+    public function mediaBrowserDelete()
+    {
+        header('Content-Type: application/json');
+
+        if (!\Core\Security::verifyCsrfToken($_POST['csrf_token'] ?? '')) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Invalid security token']);
+            exit;
+        }
+
+        $rel = str_replace('\\', '/', $_POST['path'] ?? '');
+
+        // Reject anything outside the uploads folder or containing traversal sequences.
+        if (strpos($rel, 'assets/uploads/') !== 0 || strpos($rel, '..') !== false) {
+            echo json_encode(['success' => false, 'message' => 'Invalid file path']);
+            exit;
+        }
+
+        $publicDir = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_FILENAME'])), '/');
+        $realRoot  = realpath($this->uploadsRoot());
+        $realFile  = realpath($publicDir . '/' . $rel);
+
+        if ($realFile === false || $realRoot === false || strpos(str_replace('\\', '/', $realFile), str_replace('\\', '/', $realRoot)) !== 0) {
+            echo json_encode(['success' => false, 'message' => 'File not found']);
+            exit;
+        }
+
+        if (@unlink($realFile)) {
+            echo json_encode(['success' => true]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Could not delete the file (check permissions)']);
+        }
+        exit;
     }
 
     // ===== INVOICES & PAYMENTS =====

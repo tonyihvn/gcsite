@@ -10,12 +10,13 @@
                 <?php endif; ?>
                 <div class="card-body">
                     <h5 class="card-title">About This Service</h5>
-                    <p><?= nl2br(htmlspecialchars(strip_tags($service['description'] ?? ''))) ?></p>
+                    <?php $desc = $service['description'] ?? ''; ?>
+                    <div class="rich-content"><?= $desc === strip_tags($desc) ? nl2br(htmlspecialchars($desc)) : $desc ?></div>
                     
                     <?php if (!empty($service['detailed_content'])): ?>
                     <hr>
                     <h5 class="mt-4">Details</h5>
-                    <div><?= $service['detailed_content'] ?></div>
+                    <div class="rich-content"><?= $service['detailed_content'] ?></div>
                     <?php endif; ?>
                 </div>
             </div>

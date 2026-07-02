@@ -78,17 +78,20 @@
                         <small class="text-muted">JPG, PNG, GIF, WebP (Max 5MB)</small>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label-small">Or Image URL</label>
-                        <input type="url" class="form-control" name="image_url" value="<?= $product['image_url'] ?? '' ?>" placeholder="https://... (optional alternative)">
-                        <small class="text-muted">Leave empty if uploading file</small>
+                        <label class="form-label-small">Or Select / Enter Image URL</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="image_url" value="<?= htmlspecialchars($product['image_url'] ?? '') ?>" placeholder="Pick from library or paste a URL">
+                            <button type="button" class="btn btn-outline-secondary media-browse-btn" data-target="image_url" data-preview="product_image_preview">
+                                <i class="fas fa-images"></i> Browse
+                            </button>
+                        </div>
+                        <small class="text-muted">Choose from the media library or upload a new image</small>
                     </div>
                 </div>
-                <?php if (isset($product) && !empty($product['image_url'])): ?>
-                    <div class="mt-2">
-                        <img src="<?= \Core\FileUploader::getImageUrl($product['image_url']) ?>" alt="Current image" style="max-height: 100px; border-radius: 4px;">
-                        <small class="d-block text-muted mt-1">Current product image</small>
-                    </div>
-                <?php endif; ?>
+                <div class="mt-2">
+                    <img id="product_image_preview" src="<?= (isset($product) && !empty($product['image_url'])) ? \Core\FileUploader::getImageUrl($product['image_url']) : '' ?>" alt="Selected image" style="max-height: 100px; border-radius: 4px; <?= (isset($product) && !empty($product['image_url'])) ? '' : 'display:none;' ?>">
+                    <small class="d-block text-muted mt-1">Selected / current image</small>
+                </div>
             </div>
             
             <div class="col-12">

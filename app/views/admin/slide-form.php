@@ -33,17 +33,20 @@
                         <small class="text-muted">JPG, PNG, GIF, WebP (Max 5MB)</small>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label-small">Or Image URL</label>
-                        <input type="url" class="form-control" name="image_url" value="<?= $slide['image_url'] ?? '' ?>" placeholder="https://... (optional alternative)">
-                        <small class="text-muted">Leave empty if uploading file</small>
+                        <label class="form-label-small">Or Select / Enter Image URL</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" name="image_url" value="<?= htmlspecialchars($slide['image_url'] ?? '') ?>" placeholder="Pick from library or paste a URL">
+                            <button type="button" class="btn btn-outline-secondary media-browse-btn" data-target="image_url" data-preview="slide_image_preview">
+                                <i class="fas fa-images"></i> Browse
+                            </button>
+                        </div>
+                        <small class="text-muted">Choose from the media library or upload a new image</small>
                     </div>
                 </div>
-                <?php if (isset($slide) && !empty($slide['image_url'])): ?>
-                    <div class="mt-2">
-                        <img src="<?= \Core\FileUploader::getImageUrl($slide['image_url']) ?>" alt="Current image" style="max-height: 100px; border-radius: 4px;">
-                        <small class="d-block text-muted mt-1">Current image</small>
-                    </div>
-                <?php endif; ?>
+                <div class="mt-2">
+                    <img id="slide_image_preview" src="<?= (isset($slide) && !empty($slide['image_url'])) ? \Core\FileUploader::getImageUrl($slide['image_url']) : '' ?>" alt="Selected image" style="max-height: 100px; border-radius: 4px; <?= (isset($slide) && !empty($slide['image_url'])) ? '' : 'display:none;' ?>">
+                    <small class="d-block text-muted mt-1">Selected / current image</small>
+                </div>
             </div>
             
             <div class="col-md-6">
