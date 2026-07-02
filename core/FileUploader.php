@@ -64,8 +64,10 @@ class FileUploader
             $uploadPath .= '/' . trim($subdir, '/');
             if (!is_dir($uploadPath)) {
                 if (!mkdir($uploadPath, 0755, true)) {
+                    error_log("FileUploader: Failed to create directory '$uploadPath'. Parent writable: " . (is_writable(dirname($uploadPath)) ? 'yes' : 'no'));
                     throw new \Exception('Failed to create upload subdirectory: ' . $uploadPath);
                 }
+                chmod($uploadPath, 0755);
             }
         }
 
@@ -75,11 +77,18 @@ class FileUploader
 
         // Move uploaded file
         if (move_uploaded_file($file['tmp_name'], $filepath)) {
+            // Set proper permissions
+            chmod($filepath, 0644);
+            
+            // Log successful upload
+            error_log("FileUploader: Successfully uploaded '$file[name]' to '$filepath'");
+            
             // Return relative path for storage (relative to public directory)
             $relativePath = $this->baseUploadRelativePath . ($subdir ? '/' . trim($subdir, '/') : '') . '/' . $filename;
             return str_replace('\\', '/', $relativePath);
         }
 
+        error_log("FileUploader: move_uploaded_file failed for '$file[name]' to '$filepath'");
         throw new \Exception('Failed to move uploaded file');
     }
 

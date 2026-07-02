@@ -15,8 +15,9 @@
     # Don't rewrite existing directories  
     RewriteCond %{REQUEST_FILENAME} !-d
     
-    # Exclude setup-uploads.php from rewriting - must be accessible directly
+    # Exclude utility files from rewriting
     RewriteCond %{REQUEST_URI} !^/setup-uploads\.php$
+    RewriteCond %{REQUEST_URI} !^/diagnostics\.php$
     
     # Special handling for common static files
     RewriteCond %{REQUEST_FILENAME} !(\.css|\.js|\.jpg|\.jpeg|\.png|\.gif|\.svg|\.webp|\.ico|\.woff|\.woff2|\.ttf|\.eot)$ [NC]
