@@ -11,7 +11,7 @@
             <div class="card mb-4">
                 <div class="card-body">
                     <h5 class="card-title">About This Service</h5>
-                    <p><?= nl2br(htmlspecialchars($service['description'] ?? '')) ?></p>
+                    <p><?= nl2br(htmlspecialchars(strip_tags($service['description'] ?? ''))) ?></p>
                     
                     <?php if (!empty($service['detailed_content'])): ?>
                     <hr>

@@ -11,7 +11,7 @@
             <div class="card mb-4">
                 <div class="card-body">
                     <h5 class="card-title">Product Overview</h5>
-                    <div><?= $product['description'] ?? '' ?></div>
+                    <div><?= strip_tags($product['description'] ?? '') ?></div>
                     
                     <?php if (!empty($product['features'])): ?>
                     <h6 class="mt-4">Key Features</h6>

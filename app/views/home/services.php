@@ -23,7 +23,7 @@ renderJumbotron(
                     <?php endif; ?>
                     <div class="card-body">
                         <h5 class="card-title"><?= htmlspecialchars($service['name']) ?></h5>
-                        <p class="card-text"><?= htmlspecialchars($service['description'] ?? '') ?></p>
+                        <p class="card-text"><?= htmlspecialchars(strip_tags($service['description'] ?? '')) ?></p>
                         <?php if (!empty($service['base_price'])): ?>
                         <p class="text-muted mb-2">
                             Starting from: <strong class="text-primary">₦<?= number_format($service['base_price'], 2) ?></strong>

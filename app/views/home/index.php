@@ -289,7 +289,7 @@
                             <h2 class="carousel-title" style="font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 700; margin-bottom: 20px; line-height: 1.2; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);"><?= htmlspecialchars($slide['title']) ?></h2>
                         <?php endif; ?>
                         <?php if (!empty($slide['description'])): ?>
-                            <p class="carousel-description" style="font-size: clamp(1rem, 2vw, 1.3rem); margin-bottom: 30px; opacity: 0.95; line-height: 1.6; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);"><?= htmlspecialchars($slide['description']) ?></p>
+                            <p class="carousel-description" style="font-size: clamp(1rem, 2vw, 1.3rem); margin-bottom: 30px; opacity: 0.95; line-height: 1.6; text-shadow: 1px 1px 2px rgba(0,0,0,0.5);"><?= htmlspecialchars(strip_tags($slide['description'])) ?></p>
                         <?php endif; ?>
                         <?php if (!empty($slide['button_text']) && !empty($slide['link_url'])): ?>
                             <div style="margin-top: 30px;">
@@ -400,13 +400,19 @@
             <div class="col-lg-4 col-md-6 mb-4">
                 <div class="product-card">
                     <div class="product-image">
-                        <?php echo strtoupper(substr($product['name'], 0, 1)); ?>
+                        <?php if (!empty($product['image_url'])): ?>
+                            <img src="<?= \Core\FileUploader::getImageUrl($product['image_url']) ?>" alt="<?= htmlspecialchars($product['name']) ?>" style="width: 100%; height: 100%; object-fit: cover;">
+                        <?php else: ?>
+                            <div style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; font-size: 60px; color: white;">
+                                <?php echo strtoupper(substr($product['name'], 0, 1)); ?>
+                            </div>
+                        <?php endif; ?>
                     </div>
                     <div class="product-content">
                         <div class="product-category"><?= htmlspecialchars($product['category'] ?? 'Software') ?></div>
                         <div class="product-name"><?= htmlspecialchars($product['name']) ?></div>
                         <p class="product-description">
-                            <?= htmlspecialchars(substr($product['description'] ?? 'High-quality business solution', 0, 120)) ?>...
+                            <?= htmlspecialchars(strip_tags(substr($product['description'] ?? 'High-quality business solution', 0, 120))) ?>...
                         </p>
                         <div class="product-price">₦<?= number_format($product['base_price'] ?? 0, 2) ?></div>
                         <a href="<?= route('products/' . $product['slug']) ?>" class="product-btn">Learn More</a>
@@ -431,10 +437,14 @@
             <?php foreach (array_slice($services, 0, 6) as $service): ?>
             <div class="col-lg-4 col-md-6">
                 <div class="service-card">
-                    <div class="service-icon">📊</div>
+                    <?php if (!empty($service['image_url'])): ?>
+                        <img src="<?= \Core\FileUploader::getImageUrl($service['image_url']) ?>" alt="<?= htmlspecialchars($service['name']) ?>" style="width: 100%; height: 180px; object-fit: cover; border-radius: 5px; margin-bottom: 20px;">
+                    <?php else: ?>
+                        <div class="service-icon">📊</div>
+                    <?php endif; ?>
                     <div class="service-name"><?= htmlspecialchars($service['name']) ?></div>
                     <p class="service-description">
-                        <?= htmlspecialchars(substr($service['description'] ?? $service['detailed_content'] ?? '', 0, 100)) ?>...
+                        <?= htmlspecialchars(strip_tags(substr($service['description'] ?? $service['detailed_content'] ?? '', 0, 100))) ?>...
                     </p>
                     <?php if (!empty($service['delivery_days'])): ?>
                     <div class="service-details">⏱️ Delivery: <?= htmlspecialchars($service['delivery_days']) ?> days</div>
