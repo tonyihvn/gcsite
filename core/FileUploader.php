@@ -153,9 +153,17 @@ class FileUploader
 
         // If it's an uploaded file, construct the proper URL
         if (self::isUploadedFile($imagePath)) {
-            // Ensure path starts with assets/uploads (handle both old and new formats)
-            if (strpos($imagePath, 'assets/uploads/') !== 0 && strpos($imagePath, 'uploads/') === 0) {
+            // Handle old path format: convert uploads/ to assets/uploads/
+            if (strpos($imagePath, 'uploads/') === 0 && strpos($imagePath, 'assets/uploads/') !== 0) {
                 $imagePath = 'assets/' . $imagePath;
+            }
+            
+            // Ensure it starts with assets/uploads/
+            if (strpos($imagePath, 'assets/uploads/') !== 0) {
+                // If it has uploads/ but not assets/, add assets prefix
+                if (strpos($imagePath, 'uploads/') === 0) {
+                    $imagePath = 'assets/' . $imagePath;
+                }
             }
             
             // Get the base URL from config if available
