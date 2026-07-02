@@ -4,29 +4,20 @@ namespace Core;
 class FileUploader
 {
     private $uploadDir;
-    private $baseUploadRelativePath = 'uploads'; // Now relative to public_html root
+    private $baseUploadRelativePath = 'assets/uploads'; // Relative to public directory
     private $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
     private $maxFileSize = 5242880; // 5MB
 
     public function __construct()
     {
-        // Detect environment and determine upload directory
-        $scriptPath = $_SERVER['SCRIPT_FILENAME'];
+        // Determine the public directory based on current script location
+        $scriptPath = dirname($_SERVER['SCRIPT_FILENAME']);
         error_log('FileUploader: Script path = ' . $scriptPath);
         
-        // Check if we're in shared hosting (gcsite/public structure)
-        if (strpos($scriptPath, 'gcsite') !== false) {
-            // Shared hosting: uploads go to /public_html/uploads/
-            // Script is at: /public_html/gcsite/public/index.php or similar
-            $publicHtmlRoot = dirname(dirname(dirname($scriptPath))); // Go up 3 levels to /public_html
-            $this->uploadDir = $publicHtmlRoot . '/uploads';
-            error_log('FileUploader: Shared hosting detected. Upload dir = ' . $this->uploadDir);
-        } else {
-            // Local development: use public/assets/uploads
-            $publicDir = dirname($scriptPath);
-            $this->uploadDir = $publicDir . '/assets/uploads';
-            error_log('FileUploader: Local development. Upload dir = ' . $this->uploadDir);
-        }
+        // Use public/assets/uploads relative to the public directory
+        // This works for both local development and production shared hosting
+        $this->uploadDir = $scriptPath . '/assets/uploads';
+        error_log('FileUploader: Upload dir = ' . $this->uploadDir);
         
         // Ensure upload directory exists with proper permissions
         if (!is_dir($this->uploadDir)) {
@@ -140,7 +131,7 @@ class FileUploader
      */
     public static function isUploadedFile($path)
     {
-        return $path && (strpos($path, 'uploads/') === 0 || strpos($path, 'assets/uploads/') === 0);
+        return $path && (strpos($path, 'assets/uploads/') === 0 || strpos($path, 'uploads/') === 0);
     }
 
     /**
@@ -162,8 +153,10 @@ class FileUploader
 
         // If it's an uploaded file, construct the proper URL
         if (self::isUploadedFile($imagePath)) {
-            // Normalize path - remove assets/ prefix if present
-            $imagePath = str_replace('assets/', '', $imagePath);
+            // Ensure path starts with assets/uploads (handle both old and new formats)
+            if (strpos($imagePath, 'assets/uploads/') !== 0 && strpos($imagePath, 'uploads/') === 0) {
+                $imagePath = 'assets/' . $imagePath;
+            }
             
             // Get the base URL from config if available
             $baseUrl = defined('APP_URL') ? APP_URL : (isset($_ENV['APP_URL']) ? $_ENV['APP_URL'] : '');

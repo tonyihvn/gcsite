@@ -77,16 +77,8 @@ class AdminController extends Controller
                     }
                 }
                 
-                // Detect if we're on shared hosting and use correct upload directory
-                $scriptPath = $_SERVER['SCRIPT_FILENAME'];
-                if (strpos($scriptPath, 'gcsite') !== false) {
-                    // Shared hosting: uploads go to /public_html/uploads/
-                    $publicHtmlRoot = dirname(dirname(dirname($scriptPath)));
-                    $upload_dir = $publicHtmlRoot . '/uploads/' . $subdir;
-                } else {
-                    // Local development: use public/assets/uploads
-                    $upload_dir = __DIR__ . '/../../public/assets/uploads/' . $subdir;
-                }
+                // Use public/assets/uploads for all environments
+                $upload_dir = __DIR__ . '/../../public/assets/uploads/' . $subdir;
                 
                 // Create uploads directory if it doesn't exist
                 if (!is_dir($upload_dir)) {

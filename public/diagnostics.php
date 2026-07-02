@@ -24,16 +24,8 @@ if ($token !== $app_key) {
     exit;
 }
 
-// Detect if we're on shared hosting
-$currentDir = __DIR__;
-$isSharedHosting = strpos($currentDir, 'gcsite') !== false;
-
-if ($isSharedHosting) {
-    $publicHtmlRoot = dirname(dirname($currentDir));
-    $baseUploadDir = $publicHtmlRoot . '/uploads';
-} else {
-    $baseUploadDir = __DIR__ . '/assets/uploads';
-}
+// Use public/assets/uploads directory
+$baseUploadDir = __DIR__ . '/assets/uploads';
 
 ?>
 <!DOCTYPE html>
@@ -59,14 +51,7 @@ if ($isSharedHosting) {
 </head>
 <body>
     <div class="container">
-        <h1>🔧 GINTEC Upload Diagnostics</h1>
-        
-        <div class="info">
-            <strong>Environment Mode:</strong> 
-            <span class="badge <?php echo $isSharedHosting ? 'shared' : 'local'; ?>">
-                <?php echo $isSharedHosting ? '🌐 SHARED HOSTING' : '💻 LOCAL DEVELOPMENT'; ?>
-            </span>
-        </div>
+        <h1>🔧 Upload Diagnostics</h1>
 
         <div class="info">
             <strong>Upload Base Directory:</strong><br>

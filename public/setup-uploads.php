@@ -38,22 +38,12 @@ https://gintec.com.ng/setup-uploads.php?token=YOUR_APP_KEY</p>
     exit(1);
 }
 
-$dirs = ['slides', 'blog', 'products', 'services', 'pages', 'about', 'partners', 'team', 'images'];
+$dirs = ['slides', 'blog', 'products', 'services', 'pages', 'about', 'partners', 'team', 'images', 'site'];
 $results = [];
 $errors = [];
 
-// Detect if we're on shared hosting (gcsite/public structure)
-$currentDir = __DIR__;
-$isSharedHosting = strpos($currentDir, 'gcsite') !== false;
-
-if ($isSharedHosting) {
-    // Shared hosting: upload to /public_html/uploads/
-    $publicHtmlRoot = dirname(dirname($currentDir));
-    $base = $publicHtmlRoot . '/uploads';
-} else {
-    // Local development: upload to public/assets/uploads
-    $base = __DIR__ . '/assets/uploads';
-}
+// Use public/assets/uploads directory structure (works for both local and shared hosting)
+$base = __DIR__ . '/assets/uploads';
 
 // Ensure base directory exists
 if (!is_dir($base)) {
