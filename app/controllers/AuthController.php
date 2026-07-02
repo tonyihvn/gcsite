@@ -123,6 +123,11 @@ class AuthController extends Controller
             'status' => 'active',
         ]);
 
+        // Generate a unique referral code for the new user
+        if ($userId) {
+            (new User())->generateReferralCode($userId);
+        }
+
         set_flash('success', 'Registration successful! You can now login.');
         $this->redirect('auth/login');
     }

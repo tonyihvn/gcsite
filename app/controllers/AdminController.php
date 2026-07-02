@@ -24,6 +24,8 @@ use App\Models\Partner;
 use App\Models\About;
 use App\Models\ThemeSetting;
 use App\Models\Menu;
+use App\Models\Referral;
+use App\Models\ReferralClick;
 
 class AdminController extends Controller
 {
@@ -1527,4 +1529,77 @@ class AdminController extends Controller
             exit;
         }
     }
+
+    // ===== REFERRAL MANAGEMENT =====
+    public function referrals()
+    {
+        $referralModel = new Referral();
+        $clickModel = new ReferralClick();
+
+        $leads = $referralModel->allWithReferrer();
+        $clickTotals = $clickModel->totalsByUser();
+
+        // Build a leaderboard of referrers with their click and lead counts
+        $userModel = new User();
+        $referrers = [];
+        foreach ($userModel->all() as $u) {
+            $clicks = $clickTotals[$u['id']] ?? 0;
+            $leadCount = $referralModel->countForUser($u['id']);
+            if ($clicks === 0 && $leadCount === 0 && empty($u['referral_code'])) {
+                continue; // Skip users with no referral activity
+            }
+            $referrers[] = [
+                'id'            => $u['id'],
+                'name'          => trim($u['first_name'] . ' ' . $u['last_name']),
+                'email'         => $u['email'],
+                'referral_code' => $u['referral_code'] ?? '',
+                'clicks'        => $clicks,
+                'leads'         => $leadCount,
+                'converted'     => $referralModel->countForUser($u['id'], 'converted')
+                                   + $referralModel->countForUser($u['id'], 'paid'),
+            ];
+        }
+
+        // Sort leaderboard by clicks desc
+        usort($referrers, function ($a, $b) {
+            return $b['clicks'] <=> $a['clicks'];
+        });
+
+        $data = [
+            'leads'        => $leads,
+            'referrers'    => $referrers,
+            'total_clicks' => array_sum($clickTotals),
+            'total_leads'  => count($leads),
+            'page_title'   => 'Referrals',
+        ];
+
+        $this->view('admin.referrals', $data);
+    }
+
+    public function updateReferralStatus($id)
+    {
+        $referralModel = new Referral();
+        $lead = $referralModel->find($id);
+
+        if (!$lead) {
+            set_flash('error', 'Referral not found');
+            $this->redirect('admin/referrals');
+            return;
+        }
+
+        $allowed = ['pending', 'contacted', 'converted', 'paid'];
+        $status = $_POST['status'] ?? 'pending';
+        if (!in_array($status, $allowed, true)) {
+            $status = 'pending';
+        }
+
+        $referralModel->update($id, [
+            'status' => $status,
+            'notes'  => $_POST['notes'] ?? ($lead['notes'] ?? ''),
+        ]);
+
+        set_flash('success', 'Referral updated successfully');
+        $this->redirect('admin/referrals');
+    }
 }
+

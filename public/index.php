@@ -204,6 +204,10 @@ $router->get('services', 'home', 'services');
 $router->get('services/{slug}', 'home', 'serviceDetail');
 $router->get('products', 'home', 'products');
 $router->get('products/{slug}', 'home', 'productDetail');
+
+// Referral tracking links (public - record click then show the page)
+$router->get('ref/{code}/services/{slug}', 'home', 'refServiceDetail');
+$router->get('ref/{code}/products/{slug}', 'home', 'refProductDetail');
 $router->get('contact', 'home', 'contact');
 $router->post('contact', 'home', 'submitContact');
 $router->get('about', 'about', 'index');
@@ -242,6 +246,12 @@ $router->get('dashboard/invoices/{id}', 'user', 'invoiceDetail');
 $router->get('dashboard/payments', 'user', 'payments');
 $router->get('dashboard/products', 'user', 'products');
 
+// Referral program (auth)
+$router->get('dashboard/referrals', 'referral', 'index');
+$router->post('dashboard/referrals/generate', 'referral', 'generateCode');
+$router->post('dashboard/referrals/leads', 'referral', 'addLead');
+$router->post('dashboard/referrals/leads/{id}/delete', 'referral', 'deleteLead');
+
 // Admin routes
 $router->get('admin', 'admin', 'dashboard');
 $router->get('admin/settings', 'admin', 'settings');
@@ -258,6 +268,8 @@ $router->post('admin/menu/create-from-page/{id}', 'admin', 'createMenuFromPage')
 $router->get('admin/users', 'admin', 'users');
 $router->get('admin/users/{id}', 'admin', 'userDetail');
 $router->post('admin/users/{id}/change-password', 'admin', 'changeUserPassword');
+$router->get('admin/referrals', 'admin', 'referrals');
+$router->post('admin/referrals/{id}/status', 'admin', 'updateReferralStatus');
 $router->get('admin/products', 'admin', 'products');
 $router->get('admin/products/create', 'admin', 'createProductForm');
 $router->get('admin/products/{id}', 'admin', 'editProductForm');

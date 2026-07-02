@@ -103,6 +103,86 @@ class HomeController extends Controller
         $this->view('home.product-detail', $data);
     }
 
+    /**
+     * Referral link to a service: records the click then shows the service page.
+     * URL: /ref/{code}/services/{slug}
+     */
+    public function refServiceDetail($code, $slug)
+    {
+        $service = (new Service())->first('slug', $slug);
+
+        if (!$service) {
+            http_response_code(404);
+            $this->view('errors.404');
+            return;
+        }
+
+        $this->recordReferralClick($code, 'service', $slug, $service['id']);
+
+        $data = [
+            'service' => $service,
+            'referral_code' => $code,
+            'page_title' => $service['name'] . ' - ' . config('company.name'),
+        ];
+
+        $this->view('home.service-detail', $data);
+    }
+
+    /**
+     * Referral link to a product: records the click then shows the product page.
+     * URL: /ref/{code}/products/{slug}
+     */
+    public function refProductDetail($code, $slug)
+    {
+        $product = (new Product())->first('slug', $slug);
+
+        if (!$product) {
+            http_response_code(404);
+            $this->view('errors.404');
+            return;
+        }
+
+        $this->recordReferralClick($code, 'product', $slug, $product['id']);
+
+        $data = [
+            'product' => $product,
+            'referral_code' => $code,
+            'page_title' => $product['name'] . ' - ' . config('company.name'),
+        ];
+
+        $this->view('home.product-detail', $data);
+    }
+
+    /**
+     * Persist a referral click if the code maps to a valid referrer.
+     */
+    private function recordReferralClick($code, $type, $slug, $itemId)
+    {
+        try {
+            $referrer = (new \App\Models\User())->first('referral_code', $code);
+            if (!$referrer) {
+                return; // Unknown code - ignore silently
+            }
+
+            (new \App\Models\ReferralClick())->create([
+                'referral_code' => $code,
+                'user_id'       => $referrer['id'],
+                'link_type'     => $type,
+                'item_slug'     => $slug,
+                'item_id'       => $itemId,
+                'ip_address'    => $_SERVER['REMOTE_ADDR'] ?? null,
+                'user_agent'    => substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 500),
+                'referrer_url'  => substr($_SERVER['HTTP_REFERER'] ?? '', 0, 500),
+            ]);
+
+            // Remember the referrer for potential conversion attribution
+            $_SESSION['referral_code'] = $code;
+        } catch (\Throwable $e) {
+            error_log('recordReferralClick error: ' . $e->getMessage());
+        }
+    }
+
+
     public function contact()
     {
         $data = [

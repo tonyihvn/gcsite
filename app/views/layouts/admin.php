@@ -45,6 +45,11 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link text-white" href="<?= route('admin/referrals') ?>">
+                                <i class="fas fa-share-nodes"></i> Referrals
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link text-white" href="<?= route('admin/products') ?>">
                                 <i class="fas fa-box"></i> Products
                             </a>

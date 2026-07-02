@@ -22,6 +22,9 @@
                 <a href="<?= route('dashboard/invoices') ?>" class="list-group-item list-group-item-action">
                     <i class="fas fa-receipt"></i> Invoices
                 </a>
+                <a href="<?= route('dashboard/referrals') ?>" class="list-group-item list-group-item-action">
+                    <i class="fas fa-share-nodes"></i> Referral Program
+                </a>
                 <a href="<?= route('dashboard/payments') ?>" class="list-group-item list-group-item-action">
                     <i class="fas fa-money-bill"></i> Payments
                 </a>
