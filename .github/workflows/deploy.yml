@@ -29,10 +29,15 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
+          # Use explicit FTP over TLS (fixes blocked passive data ports)
+          protocol: ftps
+          port: 21
+          # Give the passive data connection more time before failing
+          timeout: 60000
           # Local directory to upload (use "./dist" if you built a frontend app)
           local-dir: ./ 
           # Destination path on your shared hosting server
-          server-dir: /home/gintecadmin/gcsite/ 
+          # server-dir: /home/gintecadmin/gcsite/ 
           # Files/folders you DO NOT want to push over to production
           exclude: |
             **/.git*
