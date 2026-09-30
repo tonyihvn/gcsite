@@ -37,7 +37,7 @@ jobs:
           # Local directory to upload (use "./dist" if you built a frontend app)
           local-dir: ./ 
           # Destination path on your shared hosting server
-          # server-dir: /home/gintecadmin/gcsite/ 
+          server-dir: gcsite/ 
           # Files/folders you DO NOT want to push over to production
           exclude: |
             **/.git*
