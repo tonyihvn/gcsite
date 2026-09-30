@@ -353,7 +353,7 @@
 <div class="hero-section">
     <div class="container">
         <h1>Welcome to GINTEC Solutions</h1>
-        <p>Leading Provider of Innovative IT Solutions & Digital Transformation</p>
+        <p>... Leading Provider of Innovative IT Solutions & Digital Transformation</p>
         <a href="<?= route('auth/register') ?>" class="btn btn-light btn-lg">Get Started</a>
         <a href="<?= route('contact') ?>" class="btn btn-outline-light btn-lg ms-2">Schedule Demo</a>
     </div>
