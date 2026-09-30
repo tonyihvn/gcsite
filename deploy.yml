@@ -1,0 +1,71 @@
+name: 🚀 Deploy App to Shared Hosting
+
+# Trigger the workflow every time you push code to the "main" branch
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  web-deploy:
+    name: 🎉 Deploying Latest Code
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Fetch the latest code from your repository
+      - name: 🚚 Get latest code
+        uses: actions/checkout@v4
+
+      # 2. OPTIONAL: Add build steps here if you use React/Vue/Node.js
+      # - name: Install Dependencies & Build
+      #   run: |
+      #     npm ci
+      #     npm run build
+
+      # 3. Upload files securely via FTP using a trusted Marketplace action
+      - name: 📂 Sync files to server
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          # Local directory to upload (use "./dist" if you built a frontend app)
+          local-dir: ./ 
+          # Destination path on your shared hosting server
+          server-dir: /home/gintecadmin/gcsite/ 
+          # Files/folders you DO NOT want to push over to production
+          exclude: |
+            **/.git*
+            **/.github/**
+            **/node_modules/**
+            **/vendor/**
+            **/.vscode/**
+            **/.idea/**
+            **/.cache/**
+            **/tmp/**
+            **/temp/**
+            # Environment variables
+            **/.env
+            **/.env.local
+            **/.env.*.local
+            .env.production.example
+            # Non-production files
+            QUICK_REFERENCE.md
+            DEPLOYMENT_CHECKLIST.md
+            migrate.php
+            migrate-run.php
+            create_upload_dirs.php
+            router.php
+            public/create-admin.php
+            public/run-*.php
+            local.php
+            composer.lock
+            # Editor/OS junk
+            **/*.swp
+            **/*.swo
+            **/*~
+            **/.DS_Store
+            **/Thumbs.db
+            **/*.log
+            # Uploads (runtime-generated)
+            public/assets/uploads/**

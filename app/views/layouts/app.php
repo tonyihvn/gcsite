@@ -149,7 +149,7 @@
             <div class="row">
                 <div class="col-md-4 mb-3">
                     <h5>GINTEC Solutions</h5>
-                    <p>Leading provider of innovative IT solutions and consultancy services.</p>
+                    <p>...Leading provider of innovative IT solutions and consultancy services.</p>
                     <div>
                         <a href="#" class="text-white me-2"><i class="fab fa-facebook"></i></a>
                         <a href="#" class="text-white me-2"><i class="fab fa-twitter"></i></a>
